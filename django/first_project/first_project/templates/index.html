@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<body class="index-page">
+
+<main class="main">
+
+
+  <section id="hero" class="hero section">
+    <img src="{% static 'assets/img/Banner.png' %}" alt="" class="img-fluid">
+  </section>
+
+
+  <section id="new-products" class="products section py-5">
+    <div class="container">
+      <h2 class="text-center mb-4">BÁNH MỚI</h2>
+      <div class="row">
+        {% for product in new_products %}
+        <div class="col-md-4 mb-4">
+            <a href="{% url 'product_detail' product.pk %}" style="text-decoration: none; color: inherit;">
+          <div class="card shadow-sm h-100">
+            <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="text-danger fw-bold">{{ product.price }} đ</p>
+            </div>
+          </div>
+            </a>
+        </div>
+        {% empty %}
+        <p>Chưa có sản phẩm nào</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+
+  <section id="favorite-products" class="products section py-5 bg-light">
+    <div class="container">
+      <h2 class="text-center mb-4">BÁNH YÊU THÍCH</h2>
+      <div class="row">
+        {% for product in favorite_products %}
+        <div class="col-md-4 mb-4">
+            <a href="{% url 'product_detail' product.pk %}" style="text-decoration: none; color: inherit;">
+          <div class="card shadow-sm h-100">
+            <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="text-danger fw-bold">{{ product.price }} đ</p>
+            </div>
+          </div>
+            </a>
+        </div>
+        {% empty %}
+        <p>Chưa có sản phẩm nào</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+
+
+</main>
+</body>
+{% endblock %}
