@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+
+  <table class="table table-bordered align-middle text-center shadow-sm">
+    <thead class="table-light">
+      <tr>
+        <th>Ảnh</th>
+        <th>Tên sản phẩm</th>
+        <th style="width:150px;">Số lượng</th>
+        <th>Giá</th>
+        <th>Thành tiền</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>
+          {% if item.image %}
+            <img src="{{ item.image }}" alt="{{ item.name }}" width="80" class="rounded">
+          {% else %}
+            <img src="{% static 'images/default-product.png' %}" alt="no-image" width="80" class="rounded">
+          {% endif %}
+        </td>
+
+        <td>{{ item.name }}</td>
+
+        <td>
+          {% if item.product_id %}
+            <form action="{% url 'cart:update' item.product_id %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <div class="input-group input-group-sm justify-content-center">
+                <button type="submit" name="action" value="decrease" class="btn btn-outline-secondary">−</button>
+                <input type="text" name="quantity" value="{{ item.quantity }}"
+                       class="form-control text-center mx-1" style="width:60px;" readonly>
+                <button type="submit" name="action" value="increase" class="btn btn-outline-secondary">+</button>
+              </div>
+            </form>
+          {% else %}
+            <div class="text-center">{{ item.quantity }}</div>
+          {% endif %}
+        </td>
+
+        <td>{{ item.price|intcomma }} đ</td>
+        <td>{{ item.subtotal|intcomma }} đ</td>
+
+        <td>
+          <a href="{% url 'cart:remove' item.id %}" class="btn btn-sm btn-danger">
+            <i class="bi bi-trash"></i> Xóa
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center text-muted py-4">
+          <i class="bi bi-cart-x fs-4"></i> <br>Giỏ hàng trống
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if total > 0 %}
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="text-end">
+      <h4 class="mb-2">Tổng: <span class="text-danger fw-bold">{{ total|intcomma }} đ</span></h4>
+
+      <form action="{% url 'cart:checkout' %}" method="post" class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-lg btn-primary">
+        <i class="bi bi-bag-check"></i> Thanh toán
+    </button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

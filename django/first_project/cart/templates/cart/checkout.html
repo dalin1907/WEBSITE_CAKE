@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">Thanh toán</h2>
+
+  <div class="row">
+    <!-- Thông tin khách hàng -->
+    <div class="col-md-7">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Thông tin khách hàng</h5>
+          <form method="post" action="{% url 'payments:checkout' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Họ và tên</label>
+              <input type="text" name="full_name" class="form-control" required value="{{ full_name|default_if_none:'' }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" required value="{{ email|default:request.user.email|default:'' }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Số điện thoại</label>
+              <input type="text" name="phone" class="form-control" required value="{{ phone|default_if_none:'' }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Địa chỉ người nhận</label>
+              <textarea name="recipient_address" class="form-control" rows="2" required>{{ recipient_address|default_if_none:'' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Ghi chú</label>
+              <textarea name="note" class="form-control" rows="2">{{ note|default_if_none:'' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Phương thức thanh toán</label>
+              <select name="payment_method" class="form-select" required>
+                <option value="cod" {% if payment_method == 'cod' %}selected{% endif %}>Thanh toán khi nhận hàng (COD)</option>
+                <option value="paypal" {% if payment_method == 'paypal' %}selected{% endif %}>PayPal</option>
+              </select>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'cart:detail' %}" class="btn btn-outline-secondary">Quay lại giỏ hàng</a>
+              <button type="submit" class="btn btn-success">Xác nhận đặt hàng</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tóm tắt đơn hàng -->
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Tóm tắt đơn hàng</h5>
+          <ul class="list-group list-group-flush mb-3">
+            {% for item in items %}
+            <li class="list-group-item d-flex justify-content-between">
+              <div>
+                <strong>{{ item.name }}</strong><br>
+                <small class="text-muted">Số lượng: {{ item.quantity }}</small>
+              </div>
+              <div>{{ item.subtotal|intcomma }} đ</div>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center text-muted">
+              Giỏ hàng trống
+            </li>
+            {% endfor %}
+          </ul>
+          <div class="text-end">
+            <h5>Tổng: <span class="text-danger fw-bold">{{ total|intcomma }} đ</span></h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

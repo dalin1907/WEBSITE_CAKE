@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-5">
+
+  <!-- Thông tin sản phẩm -->
+  <div class="row mb-5">
+    <div class="col-md-6">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}"
+           class="img-fluid rounded"
+           style="width:100%; height:400px; object-fit:cover;">
+    </div>
+    <div class="col-md-6">
+      <h2>{{ product.name }}</h2>
+      <p>{{ product.description }}</p>
+      <p class="text-danger fw-bold">{{ product.price }} đ</p>
+      <p>Danh mục: {{ product.category.name }}</p>
+      <form method="post" action="{% url 'cart:add' product.id %}">
+        {% csrf_token %}
+        <div class="d-flex align-items-center mb-3">
+          <label for="quantity" class="me-2 fw-bold">Số lượng:</label>
+          <input type="number" name="quantity" id="quantity" min="1" value="1" class="form-control w-25">
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sản phẩm tương tự -->
+  <section class="related-products container py-4">
+    <h3>Sản phẩm tương tự</h3>
+    <div class="row">
+      {% for p in similar_products %}
+        <div class="col-md-3 mb-4">
+          <div class="card h-100 shadow-sm">
+            <a href="{% url 'products:product_detail' p.pk %}" style="text-decoration: none; color: inherit;">
+              <img src="{{ p.image.url }}" alt="{{ p.name }}"
+                   class="img-fluid"
+                   style="width:100%; height:200px; object-fit:cover;">
+              <div class="card-body text-center">
+                <h5 class="card-title">{{ p.name }}</h5>
+                <p class="text-danger fw-bold">{{ p.price }} ₫</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

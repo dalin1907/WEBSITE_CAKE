@@ -17,6 +17,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'first_project', 'templates')
 STATIC_DIR = os.path.join(BASE_DIR, 'first_project', 'static')
 
+ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "http://*.ngrok-free.app",
+]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'dalinlethi@gmail.com'
+EMAIL_HOST_PASSWORD = 'vjyhyhixegqogltz'  # DÙNG ENV VAR trên production
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+PAYPAL_MODE = "sandbox"
+PAYPAL_CLIENT_ID = "AZVepzpTTrpUTV7UM91uDHqoLJHEW6hPLdukDJG1s9RkWRWxlDDOls7bk0mulFVUhLwNAhrAzsp0-Qz0"
+PAYPAL_SECRET = "EHm3a_wLzyoMTPV-porId8XVy0Y4on_C4mC-KS8Zy3nrYP85E75d4gv4miHBq8Z3jlsFWO5obH3v4BAk"
+PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com'
+PAYPAL_CURRENCY = "USD"
+
+LOGIN_URL = '/login/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -26,7 +52,7 @@ SECRET_KEY = "django-insecure-3=)evuqad__ak($adw5+_r!9!a_#-%7%@ml04dr!-2efqo@b2!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -38,7 +64,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "first_app",
+    "django.contrib.humanize",
+    "home",
+    "products",
+    "cart",
+    "payments",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -56,13 +87,14 @@ ROOT_URLCONF = "first_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [TEMPLATES_DIR],
+        "DIRS": [BASE_DIR/ 'templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "cart.context_processors.cart_count",
             ],
         },
     },

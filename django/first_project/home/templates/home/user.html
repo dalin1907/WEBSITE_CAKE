@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<table class="table  shadow p-4 mx-auto" style="width: 380px; border-radius: 15px;">
+
+    <thead>
+    <tr>
+        <th>Tên </th>
+        <th>Email</th>
+
+    </tr>
+    {% for user in user %}
+    <tbody>
+
+    <td>{{user.username}}</td>
+    <td>{{user.email}}</td>
+
+    </tbody>
+    {% endfor %}
+</table>
+
+{% endblock %}

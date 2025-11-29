@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container d-flex justify-content-center" style="margin-top: 120px; margin-bottom: 120px;">
+  <div class="card shadow p-4" style="width: 380px; border-radius: 15px;">
+
+    <h3 class="text-center mb-4">Đăng ký</h3>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tên đăng nhập</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Mật khẩu</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
+        <input type="password" name="confirm" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn btn-success w-100 mt-2">
+        Đăng ký
+      </button>
+    </form>
+
+    <p class="text-center mt-3">
+      Đã có tài khoản? <a href="{% url 'home:login' %}">Đăng nhập</a>
+    </p>
+
+  </div>
+</div>
+
+{% endblock %}

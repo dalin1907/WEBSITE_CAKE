@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container py-4">
+
+    <h2 class="mb-4 fw-bold">Dashboard</h2>
+
+    <!-- 4 CARDS -->
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3">
+                <h5>Tổng đơn hàng</h5>
+                <h3 class="text-primary">{{ total_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3">
+                <h5>Đơn PayPal</h5>
+                <h3 class="text-success">{{ paypal_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3">
+                <h5>Đơn COD</h5>
+                <h3 class="text-warning">{{ cod_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3">
+                <h5>Doanh thu</h5>
+                <h3 class="text-danger">{{ total_revenue|intcomma }} ₫</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card shadow-sm p-3 mb-4">
+        <h5>Thống kê 7 ngày gần nhất</h5>
+
+        <canvas id="orderChart"></canvas>
+        {{ chart_data|json_script:"chart-data" }}
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+            const ctx = document.getElementById('orderChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Đơn hàng',
+                        data: chartData.counts,
+                        borderWidth: 2,
+                        borderColor: 'rgba(13,110,253,0.85)',
+                        backgroundColor: 'rgba(13,110,253,0.08)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, precision: 0 }
+                    }
+                }
+            });
+        </script>
+    </div>
+
+    <!-- LATEST ORDERS TABLE -->
+    <div class="card shadow-sm p-3">
+        <h5>5 đơn mới nhất</h5>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Phương thức</th>
+                    <th>Tổng</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in latest_orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.payment_method }}</td>
+                    <td>{{ order.total_amount|intcomma }} ₫</td>
+                    <td>{{ order.status }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">Không có đơn hàng</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

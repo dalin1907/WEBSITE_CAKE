@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<body class="index-page">
+
+<main class="main">
+
+  <!-- Banner / Hero Section -->
+  <section id="hero" class="hero section">
+    <img src="{% static 'assets/img/Banner.png' %}" alt="" class="img-fluid">
+  </section>
+
+  <!-- Sản phẩm theo danh mục -->
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">SẢN PHẨM THEO DANH MỤC</h2>
+
+    <div class="row">
+      {% for category_data in category_products %}
+        <div class="col-md-4 mb-5">
+          <div class="card h-100 shadow-sm">
+            <div class="card-header text-center">
+              <!-- Link sang trang products_by_category -->
+              <a href="{% url 'products:products_by_category' category_data.category.id %}">
+                {{ category_data.category.name }}
+              </a>
+            </div>
+
+            <div class="card-body text-center">
+              {% with category_data.products.first as product %}
+                {% if product %}
+                  <a href="{% url 'products:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+
+                  <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid" style="height:200px; object-fit:cover;">
+                  </a>
+                {% else %}
+                  <p class="text-muted">Không có sản phẩm nào.</p>
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</main>
+</body>
+{% endblock %}

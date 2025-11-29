@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-5">
+  <div class="alert alert-success">
+    <h4 class="alert-heading">Cảm ơn bạn!</h4>
+    <p>Đơn hàng được đặt thành công.</p>
+    <hr>
+    <p class="mb-0">
+      <strong>Tên:</strong> {{ order.full_name }}<br>
+      <strong>SĐT:</strong> {{ order.phone }}<br>
+        <strong>Email: </strong>{{ order.email }}<br>
+      <strong>Tổng:</strong> {{ order.total_amount|intcomma }} đ
+    </p>
+  </div>
+
+  <a href="{% url 'home:index' %}" class="btn btn-primary">Quay về trang chính</a>
+
+  <a href="{% url 'cart:detail' %}" class="btn btn-outline-secondary">Giỏ hàng</a>
+
+</div>
+{% endblock %}

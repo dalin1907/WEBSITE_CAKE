@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">TẤT CẢ SẢN PHẨM</h2>
+
+  <div class="row">
+    {% for product in products %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          <a href="{% url 'products:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+            <img src="{{ product.image.url }}" style="width:100%; height:200px; object-fit:cover;">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="text-danger fw-bold">{{ product.price }} đ</p>
+              <a href="{% url 'cart:add' product.id %}" class="btn btn-primary mt-2">Thêm vào giỏ</a>
+            </div>
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-center text-muted">Không có sản phẩm nào.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
