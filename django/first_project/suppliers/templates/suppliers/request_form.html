@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>Tạo yêu cầu cung cấp</h3>
+  <form method="post">
+    {% csrf_token %}
+    {% if prefill_ingredient %}
+      <div class="mb-3">
+        <label class="form-label">Nguyên liệu</label>
+        <div><strong>{{ prefill_ingredient.name }}</strong> — {{ prefill_ingredient.unit }}</div>
+        <!-- keep a hidden input so the ingredient is submitted -->
+        <input type="hidden" name="ingredient" value="{{ prefill_ingredient.pk }}">
+      </div>
+      <!-- render other fields (requested_quantity, note) manually -->
+      <div class="mb-3">
+        {{ form.requested_quantity.label_tag }}
+        {{ form.requested_quantity }}
+      </div>
+      <div class="mb-3">
+        {{ form.note.label_tag }}
+        {{ form.note }}
+      </div>
+    {% else %}
+      {{ form.as_p }}
+    {% endif %}
+    <button class="btn btn-primary">Tạo</button>
+    <a class="btn btn-outline-secondary" href="{% url 'suppliers:supplier_request_list' %}">Hủy</a>
+  </form>
+</div>
+{% endblock %}

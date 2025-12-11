@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Đăng ký trở thành nhà cung cấp</h3>
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-success">Đăng ký</button>
+    </form>
+</div>
+{% endblock %}

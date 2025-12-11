@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <h3 class="mb-3">Danh sách yêu cầu cung cấp</h3>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nguyên liệu</th>
+                <th>Số lượng</th>
+                <th>Trạng thái</th>
+                <th>Nhà cung cấp</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for r in requests %}
+            <tr>
+                <td>{{ r.pk }}</td>
+                <td>{{ r.ingredient.name }}</td>
+                <td>{{ r.requested_quantity }} {{ r.ingredient.unit }}</td>
+                <td>
+                    <span class="badge bg-primary">{{ r.get_status_display }}</span>
+                </td>
+
+                <td>
+                    {% if r.claimed_by %}
+                        {{ r.claimed_by.company_name }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+
+                <td>
+
+                    <!-- Xem -->
+                    <a href="{% url 'suppliers:supplier_request_detail' r.pk %}"
+                       class="btn btn-sm btn-outline-primary mb-1">
+                        Xem
+                    </a>
+
+                    <!-- SUPPLIER ACTIONS -->
+                    {% if user.supplier_profile %}
+
+                        <!-- Nhận yêu cầu -->
+                        {% if r.status == "open" %}
+                            <form method="post"
+                                  action="{% url 'suppliers:supplier_request_claim' r.pk %}"
+                                  style="display:inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-success">Nhận</button>
+                            </form>
+
+                        <!-- Hoàn thành -->
+                        {% elif r.status == "accepted" and r.claimed_by == user.supplier_profile %}
+                            <a href="{% url 'suppliers:supplier_request_complete' r.pk %}"
+                               class="btn btn-sm btn-dark">
+                                Hoàn thành
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- ADMIN ACTIONS -->
+                    {% if user.is_staff %}
+
+                        {% if r.status == "claimed" %}
+                            <form method="post"
+                                  action="{% url 'suppliers:supplier_request_accept' r.pk %}"
+                                  style="display:inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-success">Duyệt</button>
+                            </form>
+
+                            <form method="post"
+                                  action="{% url 'suppliers:supplier_request_reject' r.pk %}"
+                                  style="display:inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-danger">Từ chối</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-3">
+                    Không có yêu cầu nào.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

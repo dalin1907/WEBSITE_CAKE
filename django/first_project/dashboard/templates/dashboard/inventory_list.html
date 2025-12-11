@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 fw-bold">QUẢN LÝ KHO</h2>
+
+    <div class="mb-3">
+        <a href="{% url 'order_statistics' %}" class="btn btn-outline-primary">Quản lý Đơn Hàng</a>
+        <a href="{% url 'inventory_list' %}" class="btn btn-outline-primary">Quản lý kho</a>
+
+    </div>
+    <div class="mb-3 d-flex justify-content-between">
+        <form method="get" class="d-flex">
+            <input type="text" name="q" value="{{ q }}" class="form-control me-2" placeholder="Tìm nguyên liệu...">
+            <button class="btn btn-primary">Tìm</button>
+            <a href="{% url 'add_ingredient' %}" class="btn btn-success ms-2">Thêm nguyên liệu</a>
+        </form>
+    </div>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Tên</th>
+                <th>Đơn vị</th>
+                <th>Số lượng</th>
+                <th>Ngưỡng cảnh báo</th>
+                <th>Cập nhật</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ing in ingredients %}
+            <tr class="{% if ing.is_low_stock %}table-warning{% endif %}">
+                <td>{{ ing.name }}</td>
+                <td>{{ ing.get_unit_display }}</td>
+                <td>{{ ing.quantity|intcomma }} {{ ing.unit }}</td>
+                <td>{{ ing.min_quantity|intcomma }}</td>
+                <td>{{ ing.last_updated|naturaltime }}</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'ingredient_detail' ing.pk %}">Xem / Sửa</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Không có nguyên liệu</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

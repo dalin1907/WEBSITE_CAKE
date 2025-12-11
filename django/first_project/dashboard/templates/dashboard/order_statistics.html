@@ -3,7 +3,41 @@
 {% block content %}
 <div class="container py-4">
 
-    <h2 class="mb-4 fw-bold">Dashboard</h2>
+    <h2 class="mb-4 fw-bold">QUẢN LÝ DOANH THU</h2>
+
+    <div class="mb-3">
+        <a href="{% url 'order_statistics' %}" class="btn btn-outline-primary">Quản lý Đơn Hàng</a>
+        <a href="{% url 'inventory_list' %}" class="btn btn-outline-primary">Quản lý kho</a>
+
+    </div>
+
+    <!-- FILTER FORM -->
+    <div class="card shadow-sm p-3 mb-4">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label for="start_date" class="form-label mb-1">Từ ngày</label>
+                <input type="date" id="start_date" name="start_date" class="form-control"
+                       value="{{ start_date_str }}">
+            </div>
+            <div class="col-auto">
+                <label for="end_date" class="form-label mb-1">Đến ngày</label>
+                <input type="date" id="end_date" name="end_date" class="form-control"
+                       value="{{ end_date_str }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Lọc</button>
+                <a href="?" class="btn btn-outline-secondary">Xóa</a>
+            </div>
+        </form>
+
+        {% if range_swapped %}
+        <div class="mt-3">
+            <div class="alert alert-warning mb-0 py-2">
+                Start date lớn hơn End date — hệ thống đã đổi ngược lại giúp bạn.
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
     <!-- 4 CARDS -->
     <div class="row mb-4">
@@ -39,7 +73,7 @@
 
     <!-- CHART -->
     <div class="card shadow-sm p-3 mb-4">
-        <h5>Thống kê 7 ngày gần nhất</h5>
+        <h5>Thống kê {{ start_date_str }} → {{ end_date_str }}</h5>
 
         <canvas id="orderChart"></canvas>
         {{ chart_data|json_script:"chart-data" }}

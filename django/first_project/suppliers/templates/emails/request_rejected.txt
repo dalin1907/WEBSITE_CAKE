@@ -1,0 +1,7 @@
+Chào {{ supplier }},
+Yêu cầu #{{ request.pk }} đã bị admin từ chối.
+Nguyên liệu: {{ request.ingredient.name }}
+Số lượng: {{ request.requested_quantity }} {{ request.ingredient.unit }}
+
+Admin note:
+{{ request.admin_note }}

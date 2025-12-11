@@ -1,9 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from products.models import Category, Product
-from django.contrib.auth.models import  User
+from django.contrib.auth.models import User
+from django.contrib.admin.views.decorators import staff_member_required
+from django.urls import reverse, NoReverseMatch
 
 
 def index(request):
@@ -11,7 +14,6 @@ def index(request):
     category_products = []
 
     for category in categories:
-        # Lọc product theo ManyToManyField
         products = Product.objects.filter(categories=category)
         category_products.append({
             'category': category,
@@ -36,8 +38,6 @@ def contact(request):
 
 
 def register_view(request):
-    # from django.contrib.auth.models import User
-
     if request.method == "POST":
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
@@ -64,19 +64,35 @@ def login_view(request):
         password = request.POST.get('password', '')
 
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+
+        if user:
             login(request, user)
-            # merge giỏ session (nếu có) vào DB
+
+            # thử merge cart nếu có
             try:
                 merge_session_cart_to_user(request)
-            except Exception:
-                # không để merge gây crash trang login
+            except:
                 pass
-            return redirect('home:index')  # chuyển đến trang chính
-        else:
-            messages.error(request, "Sai tên đăng nhập hoặc mật khẩu")
+
+            # Kiểm tra supplier
+            try:
+                from suppliers.models import SupplierProfile
+                if SupplierProfile.objects.filter(user=user).exists():
+                    return redirect('suppliers:supplier_request_list')
+            except:
+                pass
+
+            # Nếu là admin → về trang HTML
+            if user.is_staff:
+                return redirect('home:index')
+
+            # User bình thường
+            return redirect('home:index')
+
+        messages.error(request, "Sai tên đăng nhập hoặc mật khẩu")
 
     return render(request, 'home/login.html')
+
 
 
 def logout_view(request):
@@ -84,8 +100,10 @@ def logout_view(request):
     return redirect('home:login')
 
 
-
-
 def user(request):
-    user = User.objects.all()
-    return render(request, 'home/user.html',{'user':user})
+    """
+    Hiển thị danh sách user.
+    Lưu ý: giữ tên 'user' vì home/urls.py hiện đang gọi views.user (nếu bạn muốn đổi, cần cập nhật urls.py)
+    """
+    users = User.objects.all()
+    return render(request, 'home/user.html', {'user': users})

@@ -1,0 +1,8 @@
+Nhà cung cấp {{ supplier }} (user: {{ user.username }}, email: {{ supplier.contact_email }}, phone: {{ supplier.phone }}) đã nhận yêu cầu #{{ request.pk }}.
+Nguyên liệu: {{ request.ingredient.name }}
+Số lượng: {{ request.requested_quantity }} {{ request.ingredient.unit }}
+
+Message from supplier:
+{{ request.supplier_message }}
+
+Xem trong admin để xử lý: (vào /admin/ để mở request)

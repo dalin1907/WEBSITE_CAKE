@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <h3 class="mb-3">Danh sách yêu cầu đã được nhà cung cấp nhận</h3>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nguyên liệu</th>
+                <th>Nhà cung cấp</th>
+                <th>Thời gian nhận</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for r in requests %}
+            <tr>
+                <td>{{ r.pk }}</td>
+                <td>{{ r.ingredient.name }}</td>
+                <td>{{ r.claimed_by.company_name }}</td>
+                <td>{{ r.claimed_at|date:"d/m/Y H:i" }}</td>
+
+                <td>
+                    <a href="{% url 'suppliers:supplier_request_detail' r.pk %}"
+                       class="btn btn-sm btn-outline-primary">
+                        Xem
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                    Chưa có yêu cầu nào.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

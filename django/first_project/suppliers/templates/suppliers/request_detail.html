@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <h3>Chi tiết yêu cầu #{{ request_obj.pk }}</h3>
+    <hr>
+
+    <p><strong>Nguyên liệu:</strong> {{ request_obj.ingredient.name }}</p>
+    <p><strong>Số lượng:</strong> {{ request_obj.requested_quantity }} {{ request_obj.ingredient.unit }}</p>
+    <p><strong>Trạng thái:</strong>
+        <span class="badge bg-info">{{ request_obj.get_status_display }}</span>
+    </p>
+
+    {% if request_obj.supplier_message %}
+    <p><strong>Ghi chú từ nhà cung cấp:</strong></p>
+    <div class="border rounded p-2 bg-light">{{ request_obj.supplier_message }}</div>
+    {% endif %}
+
+    <hr>
+
+    <!-- Supplier nhận yêu cầu -->
+    {% if user.supplier_profile and request_obj.status == "open" %}
+    <form action="{% url 'suppliers:supplier_request_claim' request_obj.pk %}" method="post">
+        {% csrf_token %}
+        <textarea name="message" class="form-control" placeholder="Gửi lời nhắn..." required></textarea>
+        <button class="btn btn-success mt-2">Nhận yêu cầu</button>
+    </form>
+    {% endif %}
+
+    <!-- Admin xử lý -->
+    {% if user.is_staff and request_obj.status == "claimed" %}
+    <div class="mt-4">
+        <form action="{% url 'suppliers:supplier_request_accept' request_obj.pk %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-success">Duyệt yêu cầu</button>
+        </form>
+
+        <form action="{% url 'suppliers:supplier_request_reject' request_obj.pk %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-danger">Từ chối</button>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

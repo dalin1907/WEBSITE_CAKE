@@ -55,10 +55,24 @@
         <li><a href="{% url 'home:resume' %}">TIN TỨC</a></li>
         <li><a href="{% url 'home:contact' %}">LIÊN HỆ</a></li>
 
-          {% if user.is_staff %}
-            <li><a href="/dashboard/order-statistics/">DASHBOARD</a></li>
-          <li><a href="{% url 'home:user' %}">Khách Hàng</a></li>
-            {% endif %}
+          {% if user.is_authenticated %}
+    {% if user.is_staff %}
+        <li><a href="/dashboard/order-statistics/">DASHBOARD</a></li>
+          <li><a class="nav-link" href="{% url 'suppliers:supplier_claimed_list' %}">
+        Yêu cầu đã nhận
+          </a></li>
+<!--        <li><a href="{% url 'home:user' %}">Khách Hàng</a></li>-->
+
+    {% endif %}
+{% endif %}
+          {% if user.is_authenticated %}
+    {% if user.supplier_profile %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'suppliers:supplier_request_list' %}">CUNG CẤP
+            </a>
+        </li>
+    {% endif %}
+{% endif %}
 
         <!-- Icon giỏ hàng -->
         <li class="ms-3">
@@ -78,13 +92,28 @@
               {{ user.username }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-              <li class="dropdown-item-text text-center">
-                <strong>{{ user.username }}</strong><br>
-                <small class="text-muted">{{ user.email }}</small>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="{% url 'home:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
-            </ul>
+  <li class="dropdown-item-text text-center">
+    <strong>{{ user.username }}</strong><br>
+    <small class="text-muted">{{ user.email }}</small>
+  </li>
+  <li><hr class="dropdown-divider"></li>
+
+  {% if not user.supplier_profile %}
+  <li>
+    <a class="dropdown-item" href="{% url 'suppliers:supplier_register' %}">
+      <i class="bi bi-briefcase-fill me-2"></i>Đăng ký nhà cung cấp
+    </a>
+  </li>
+  <li><hr class="dropdown-divider"></li>
+  {% endif %}
+
+  <li>
+    <a class="dropdown-item text-danger" href="{% url 'home:logout' %}">
+      <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+    </a>
+  </li>
+</ul>
+
           </li>
         {% else %}
           <li class="ms-3">

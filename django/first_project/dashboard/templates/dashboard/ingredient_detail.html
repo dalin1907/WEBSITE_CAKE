@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container py-4">
+    {% if creating %}
+        <h2 class="mb-4">Thêm nguyên liệu mới</h2>
+    {% else %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">Nguyên liệu: {{ ingredient.name }}</h2>
+            <div>
+                <!-- Nút tạo yêu cầu: chỉ hiện cho staff (chỉ staff được tạo request theo view mặc định) -->
+                {% if user.is_staff %}
+                <a href="{% url 'suppliers:supplier_request_create' %}?ingredient={{ ingredient.pk }}" class="btn btn-outline-primary me-2">
+                    Tạo yêu cầu cung cấp
+                </a>
+                {% endif %}
+                <a class="btn btn-outline-secondary" href="{% url 'inventory_list' %}">Quay lại</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Thông tin</h5>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="btn btn-primary">Lưu</button>
+                <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary">Quay lại</a>
+            </form>
+        </div>
+
+        {% if not creating %}
+        <div class="col-md-6">
+            <h5>Thao tác kho</h5>
+            <form method="post" action="{% url 'add_transaction' ingredient.pk %}">
+                {% csrf_token %}
+                {{ tx_form.as_p }}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success">Lưu giao dịch</button>
+                    <a class="btn btn-outline-secondary" href="{% url 'inventory_list' %}">Quay lại</a>
+                </div>
+            </form>
+
+            <hr>
+            <h6>Lịch sử giao dịch gần đây</h6>
+            <ul class="list-group">
+                {% for tx in transactions %}
+                <li class="list-group-item">
+                    <strong>{{ tx.get_transaction_type_display }}</strong>
+                    &nbsp;—&nbsp; {{ tx.change|intcomma }} {{ ingredient.unit }}
+                    <div class="text-muted small">{{ tx.created_at|naturaltime }}{% if tx.note %} — {{ tx.note }}{% endif %}</div>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Chưa có giao dịch</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

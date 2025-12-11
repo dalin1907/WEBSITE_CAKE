@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Đăng ký hồ sơ nhà cung cấp</h3>
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary">Lưu hồ sơ</button>
+    </form>
+</div>
+{% endblock %}
