@@ -16,6 +16,7 @@
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -26,6 +27,7 @@
 
   <!-- Main CSS File -->
   <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
 
@@ -51,26 +53,40 @@
           </ul>
         </li>
 
-        <li><a href="{% url 'home:portfolio' %}">GIỚI THIỆU</a></li>
-        <li><a href="{% url 'home:resume' %}">TIN TỨC</a></li>
+<!--        <li><a href="{% url 'home:portfolio' %}">GIỚI THIỆU</a></li>-->
+<!--        <li><a href="{% url 'home:resume' %}">TIN TỨC</a></li>-->
         <li><a href="{% url 'home:contact' %}">LIÊN HỆ</a></li>
 
           {% if user.is_authenticated %}
     {% if user.is_staff %}
+        <!-- ADMIN -->
         <li><a href="/dashboard/order-statistics/">DASHBOARD</a></li>
-          <li><a class="nav-link" href="{% url 'suppliers:supplier_claimed_list' %}">
-        Yêu cầu đã nhận
-          </a></li>
-<!--        <li><a href="{% url 'home:user' %}">Khách Hàng</a></li>-->
+          <li class="dropdown">
+          <a href=""><span>YÊU CẦU</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+          <ul>
+<!--            <li><a href="{% url 'suppliers:supplier_claimed_list' %}">Yêu Cầu Đã Nhận</a></li>-->
+            <li><a href="{% url 'suppliers:requests_list' %}">Yêu Cầu Mới</a></li>
+            <li><a href="{% url 'suppliers:proposals_admin_list' %}">Đề Xuất</a></li>
 
-    {% endif %}
-{% endif %}
-          {% if user.is_authenticated %}
-    {% if user.supplier_profile %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'suppliers:supplier_request_list' %}">CUNG CẤP
-            </a>
+          </ul>
         </li>
+<!--        <li><a class="nav-link" href="{% url 'suppliers:supplier_claimed_list' %}">-->
+<!--            Yêu cầu đã nhận-->
+<!--        </a></li>-->
+
+    {% elif user.supplier_profile %}
+        <!-- NHÀ CUNG CẤP (không cần duyệt) -->
+        <li>
+            <a class="nav-link" href="{% url 'suppliers:requests_list' %}">Cung cấp</a>
+        </li>
+
+    {% else %}
+        <!-- Người dùng chưa là nhà cung cấp -->
+<!--        <li>-->
+<!--            <a class="nav-link" href="{% url 'suppliers:supplier_register' %}">-->
+<!--                Đăng ký nhà cung cấp-->
+<!--            </a>-->
+<!--        </li>-->
     {% endif %}
 {% endif %}
 
@@ -137,8 +153,8 @@
     </div>
     <div class="social-links d-flex justify-content-center">
       <a href=""><i class="bi bi-twitter-x"></i></a>
-      <a href=""><i class="bi bi-facebook"></i></a>
-      <a href=""><i class="bi bi-instagram"></i></a>
+      <a href="https://www.facebook.com/TiemminhlaJulycake"><i class="bi bi-facebook"></i></a>
+      <a href="https://www.instagram.com/tiemminhlajulycake/"><i class="bi bi-instagram"></i></a>
       <a href=""><i class="bi bi-linkedin"></i></a>
     </div>
   </div>
@@ -163,6 +179,5 @@
 
 <!-- Main JS File -->
 <script src="{% static 'assets/js/main.js' %}"></script>
-
 </body>
 </html>

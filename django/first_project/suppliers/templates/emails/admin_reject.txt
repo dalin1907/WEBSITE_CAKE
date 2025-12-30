@@ -1,0 +1,9 @@
+Yêu cầu #{{ req.pk }} đã bị từ chối.
+
+Nguyên liệu: {{ req.ingredient.name }}
+Số lượng: {{ req.requested_quantity }} {{ req.ingredient.unit }}
+
+Ghi chú admin:
+{{ req.admin_note }}
+
+Cảm ơn.

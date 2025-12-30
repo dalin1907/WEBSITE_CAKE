@@ -9,8 +9,8 @@ urlpatterns = [
     path("products/", include("products.urls", namespace="products")),  # product listing/detail/category
     path("cart/", include("cart.urls", namespace="cart")),     # cart view, add, remove, update, checkout (review)
     path("payments/", include("payments.urls", namespace="payments")),
-    path('suppliers/', include('suppliers.urls')), # payment process, success, paypal callbacks
-    path('dashboard/', include('dashboard.urls')),
+    path("suppliers/", include("suppliers.urls", namespace="suppliers")),
+    path("dashboard/", include("dashboard.urls", namespace="dashboard")),
 ]
 
 if settings.DEBUG:

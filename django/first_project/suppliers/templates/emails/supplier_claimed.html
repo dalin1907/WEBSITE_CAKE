@@ -1,34 +1,7 @@
-<div style="font-family: Arial; font-size: 15px;">
-    <h2 style="color:#333;">Nhà cung cấp đã nhận yêu cầu #{{ request.pk }}</h2>
-
-    <p><strong>Nhà cung cấp:</strong> {{ supplier.company_name }}</p>
-    <p><strong>Tài khoản:</strong> {{ user.username }} ({{ user.email }})</p>
-
-    <hr>
-
-    <p><strong>Nguyên liệu:</strong> {{ request.ingredient.name }}</p>
-    <p><strong>Số lượng:</strong> {{ request.requested_quantity }} {{ request.ingredient.unit }}</p>
-
-    {% if request.supplier_message %}
-    <p><strong>Lời nhắn từ nhà cung cấp:</strong></p>
-    <blockquote style="
-            background: #f1f1f1;
-            padding: 12px;
-            border-left: 4px solid #28a745;
-            border-radius: 4px;">
-        {{ request.supplier_message }}
-    </blockquote>
-    {% endif %}
-
-    <p>
-        <a href="{% url 'suppliers:admin_request_detail' request.pk %}"
-           style="
-               padding: 10px 15px;
-               background: #28a745;
-               color: white;
-               text-decoration: none;
-               border-radius: 4px;">
-            👉 Vào trang duyệt yêu cầu
-        </a>
-    </p>
-</div>
+<!doctype html><html><body>
+<p>Nhà cung cấp {{ supplier.company_name }} đã nhận yêu cầu #{{ request.pk }}.</p>
+<ul>
+  <li>Nguyên liệu: {{ request.ingredient.name }}</li>
+  <li>Số lượng: {{ request.requested_quantity }} {{ request.ingredient.unit }}</li>
+</ul>
+</body></html>

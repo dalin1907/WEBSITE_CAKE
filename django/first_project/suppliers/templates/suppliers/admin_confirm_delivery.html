@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container py-4">
+    <h2>Xác nhận giao hàng cho Request #{{ order.pk }}</h2>
+    <p>Delivery #{{ delivery.pk }} bởi {{ delivery.supplier.username }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <button name="action" value="confirm" class="btn btn-success" type="submit">Confirm (Completed)</button>
+      <button name="action" value="reject" class="btn btn-danger" type="submit">Reject Delivery</button>
+    </form>
+  </div>
+{% endblock %}

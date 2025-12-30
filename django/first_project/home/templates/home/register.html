@@ -1,44 +1,84 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'home/css/home.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
 
-<div class="container d-flex justify-content-center" style="margin-top: 120px; margin-bottom: 120px;">
-  <div class="card shadow p-4" style="width: 380px; border-radius: 15px;">
+      <div class="auth-box p-4">
+        <h3 class="text-center fw-bold mb-4">ĐĂNG KÝ</h3>
 
-    <h3 class="text-center mb-4">Đăng ký</h3>
+        <form method="POST" id="registerForm">
+          {% csrf_token %}
 
-    <form method="POST">
-      {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tên đăng nhập</label>
+            <input type="text" name="username" class="form-control" required>
+          </div>
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Tên đăng nhập</label>
-        <input type="text" name="username" class="form-control" required>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mật khẩu</label>
+            <input type="password" name="password" id="password" class="form-control" required>
+            <small class="text-muted">
+              Mật khẩu phải chứa ít nhất 1 chữ và 1 số
+            </small>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
+            <input type="password" name="confirm" id="confirm" class="form-control" required>
+            <div id="errorMsg" class="text-danger small mt-1"></div>
+          </div>
+
+          <button type="submit" class="btn btn-danger w-100 py-2">
+            Đăng ký
+          </button>
+        </form>
+
+        <p class="text-center mt-3 mb-0">
+          Đã có tài khoản?
+          <a href="{% url 'home:login' %}" class="fw-semibold text-decoration-none text-danger">
+            Đăng nhập
+          </a>
+        </p>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Email</label>
-        <input type="email" name="email" class="form-control" required>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Mật khẩu</label>
-        <input type="password" name="password" class="form-control" required>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
-        <input type="password" name="confirm" class="form-control" required>
-      </div>
-
-      <button type="submit" class="btn btn-success w-100 mt-2">
-        Đăng ký
-      </button>
-    </form>
-
-    <p class="text-center mt-3">
-      Đã có tài khoản? <a href="{% url 'home:login' %}">Đăng nhập</a>
-    </p>
-
+    </div>
   </div>
 </div>
 
+<script>
+document.getElementById("registerForm").addEventListener("submit", function(e) {
+    const pass = document.getElementById("password").value;
+    const confirm = document.getElementById("confirm").value;
+    const error = document.getElementById("errorMsg");
+
+    const hasLetter = /[a-zA-Z]/.test(pass);
+    const hasNumber = /\d/.test(pass);
+
+    if (!hasLetter || !hasNumber) {
+        e.preventDefault();
+        error.innerText = "Mật khẩu phải chứa ít nhất 1 chữ cái và 1 chữ số!";
+        return;
+    }
+
+    if (pass !== confirm) {
+        e.preventDefault();
+        error.innerText = "Mật khẩu xác nhận không khớp!";
+        return;
+    }
+
+    error.innerText = "";
+});
+</script>
 {% endblock %}

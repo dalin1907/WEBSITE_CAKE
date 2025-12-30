@@ -19,7 +19,7 @@ class Order(models.Model):
     recipient_address = models.TextField("Địa chỉ người nhận")
     note = models.TextField("Ghi chú", blank=True)
     payment_method = models.CharField("Phương thức thanh toán", max_length=50, choices=PAYMENT_CHOICES, default='cod')
-    total_amount = models.DecimalField("Tổng tiền", max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    total_amount = models.DecimalField("Tổng tiền", max_digits=12, decimal_places=3, default=Decimal('0.000'))
     created_at = models.DateTimeField("Thời gian tạo", auto_now_add=True)
     paid = models.BooleanField("Đã thanh toán", default=False)
     status = models.CharField("Trạng thái", max_length=50, default='pending')  # pending, processing, shipped, delivered, cancelled
@@ -39,9 +39,9 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product_id = models.IntegerField("Product ID", null=True, blank=True)
     product_name = models.CharField("Tên sản phẩm", max_length=255)
-    price = models.DecimalField("Đơn giá", max_digits=12, decimal_places=2)
+    price = models.DecimalField("Đơn giá", max_digits=12, decimal_places=3)
     quantity = models.PositiveIntegerField("Số lượng", default=1)
-    subtotal = models.DecimalField("Thành tiền", max_digits=12, decimal_places=2)
+    subtotal = models.DecimalField("Thành tiền", max_digits=12, decimal_places=3)
 
     class Meta:
         verbose_name = "Mặt hàng đơn hàng"

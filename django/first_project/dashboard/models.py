@@ -13,9 +13,8 @@ class Ingredient(models.Model):
 
     name = models.CharField(max_length=200, unique=True)
     unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='kg')
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    min_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0,
-                                       help_text='Mức cảnh báo tồn tối thiểu')
+    quantity = models.PositiveIntegerField(default=1)
+    min_quantity = models.PositiveIntegerField(default=1)
     description = models.TextField(blank=True)
     last_updated = models.DateTimeField(auto_now=True)
 
@@ -40,8 +39,7 @@ class InventoryTransaction(models.Model):
 
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=3, choices=TRANSACTION_TYPES)
-    change = models.DecimalField(max_digits=10, decimal_places=2,
-                                 help_text='Số lượng thay đổi (dương cho nhập/điều chỉnh, âm cho xuất nếu muốn)')
+    change = models.PositiveIntegerField(default=1)
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 

@@ -1,0 +1,7 @@
+Yêu cầu #{{ req.pk }} đã được admin chấp nhận.
+
+Nguyên liệu: {{ req.ingredient.name }}
+Số lượng: {{ req.requested_quantity }} {{ req.ingredient.unit }}
+
+Cảm ơn,
+July Cake

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container py-4">
+    <h2>Proposal #{{ proposal.pk }}</h2>
+    <p><strong>Request:</strong> #{{ proposal.order_request.pk }} - {{ proposal.order_request.title }}</p>
+    <p><strong>Supplier:</strong> {{ proposal.supplier.username }}</p>
+    <p><strong>Message:</strong></p>
+    <div class="border p-3">{{ proposal.message|linebreaks }}</div>
+    <p><strong>Offered quantity:</strong> {{ proposal.offered_quantity }} {{ proposal.order_request.unit }}</p>
+    <p><strong>Offered price:</strong> {{ proposal.offered_price }}</p>
+
+    <form method="post" action="{% url 'suppliers:proposal_approve' proposal.pk %}">
+      {% csrf_token %}
+      <button class="btn btn-success" type="submit">Duyệt</button>
+    </form>
+
+    <form method="post" action="{% url 'suppliers:proposal_reject' proposal.pk %}">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Từ chối</button>
+    </form>
+  </div>
+{% endblock %}

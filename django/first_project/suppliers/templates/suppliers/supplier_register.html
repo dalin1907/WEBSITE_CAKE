@@ -1,13 +1,30 @@
 {% extends "base.html" %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'suppliers/css/supplier.css' %}">
 {% block content %}
-<div class="container mt-4">
-    <h3>Đăng ký trở thành nhà cung cấp</h3>
-    <hr>
+<div class="container d-flex justify-content-center" style="margin-top:120px; margin-bottom:120px;">
+  <div class="card shadow p-4 supplier-form-card">
+
+    <h3 class="text-center mb-4 text-danger fw-bold">ĐĂNG KÝ NHÀ CUNG CẤP</h3>
 
     <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn btn-success">Đăng ký</button>
+      {% csrf_token %}
+
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <small class="text-danger">{{ field.errors|striptags }}</small>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button class="btn btn-danger w-100 mt-3" type="submit">
+        <i class="bi bi-briefcase-fill me-1"></i> Gửi hồ sơ
+      </button>
     </form>
+
+  </div>
 </div>
 {% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h3>Tạo yêu cầu cung cấp</h3>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Nguyên liệu: CHỈ HIỂN THỊ -->
+    <div class="mb-3">
+      <label class="form-label">Nguyên liệu</label>
+      <div class="form-control bg-light">
+        <strong>{{ ingredient.name }}</strong>
+        ({{ ingredient.unit }})
+      </div>
+      {{ form.ingredient }}
+    </div>
+
+    <!-- Số lượng -->
+    <div class="mb-3">
+      {{ form.quantity.label_tag }}
+      {{ form.quantity }}
+      {{ form.quantity.errors }}
+    </div>
+
+    <!-- Ghi chú -->
+    <div class="mb-3">
+      {{ form.note.label_tag }}
+      {{ form.note }}
+    </div>
+
+    <button class="btn btn-primary">Tạo yêu cầu</button>
+    <a class="btn btn-outline-secondary" href="{% url 'suppliers:requests_list' %}">
+      Hủy
+    </a>
+  </form>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from .models import Product, Category
 
@@ -8,17 +9,25 @@ def products(request):
 
 
 def product_detail(request, pk):
-    product = Product.objects.get(pk=pk)
+    # Lấy sản phẩm cụ thể
+    product = get_object_or_404(Product, pk=pk)
 
-    # Lấy danh sách sản phẩm cùng category (hoặc nhiều category) nhưng không gồm chính sản phẩm này
-    similar_products = Product.objects.filter(
+    # Lấy danh sách sản phẩm tương tự (ví dụ: trong cùng category đầu tiên)
+    similar_products = Product.objects.exclude(pk=product.pk).filter(
         categories__in=product.categories.all()
-    ).exclude(id=product.id).distinct()[:8]  # lấy tối đa 8 sản phẩm tương tự
+    ).distinct()
 
-    return render(request, 'products/product_detail.html', {
+    # Áp dụng phân trang
+    paginator = Paginator(similar_products, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Truyền dữ liệu vào context
+    context = {
         'product': product,
-        'similar_products': similar_products
-    })
+        'similar_products': page_obj,  # Trang hiện tại của paginator
+    }
+    return render(request, 'products/product_detail.html', context)
 
 
 def products_by_category(request, category_id):

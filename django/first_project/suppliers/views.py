@@ -1,309 +1,329 @@
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
-from django.urls import reverse_lazy
-from django.utils import timezone
-from django.views.generic import CreateView, ListView, DetailView, View
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
-from .models import SupplierRequest, SupplierProfile
-from .forms import SupplierRequestForm, SupplierClaimForm, SupplierProfileForm
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.mail import send_mail
+from django.db import transaction
+from django.conf import settings
 from dashboard.models import Ingredient
+from .models import (
+    OrderRequest,
+    SupplierProposal,
+    Delivery,
+    InventoryItem,
+    WarehouseReceipt,
+    SupplierProfile,
+)
 
-User = get_user_model()
+from .forms import (
+    SupplierProposalForm,
+    DeliveryForm,
+    SupplierProfileForm,
+    AdminOrderRequestForm,
+)
+
+# =====================================================
+# SUPPLIER VIEWS
+# =====================================================
+
+@login_required
+def requests_list(request):
+    """
+    Supplier xem các yêu cầu do ADMIN tạo
+    """
+    qs = OrderRequest.objects.filter(status=OrderRequest.Status.OPEN)
+    return render(request, "suppliers/requests_list.html", {"requests": qs})
 
 
-# ===========================================================
-# 1) ADMIN TẠO YÊU CẦU CUNG CẤP
-# ===========================================================
-class SupplierRequestCreateView(UserPassesTestMixin, CreateView):
-    model = SupplierRequest
-    form_class = SupplierRequestForm
-    template_name = 'suppliers/request_form.html'
-    success_url = reverse_lazy('suppliers:supplier_request_list')
+@login_required
+def request_detail(request, pk):
+    order = get_object_or_404(OrderRequest, pk=pk)
+    existing_proposal = SupplierProposal.objects.filter(
+        order_request=order,
+        supplier=request.user
+    ).first()
 
-    def test_func(self):
-        return self.request.user.is_staff
+    return render(
+        request,
+        "suppliers/request_detail.html",
+        {
+            "order": order,
+            "existing_proposal": existing_proposal,
+        },
+    )
 
-    def get_initial(self):
-        initial = super().get_initial()
-        ingredient_pk = self.request.GET.get('ingredient')
-        if ingredient_pk:
+
+@login_required
+def apply_request(request, pk):
+    """
+    Supplier gửi đề xuất cung cấp
+    """
+    order = get_object_or_404(
+        OrderRequest,
+        pk=pk,
+        status=OrderRequest.Status.OPEN
+    )
+
+    # Không cho apply 2 lần
+    if SupplierProposal.objects.filter(order_request=order, supplier=request.user).exists():
+        messages.warning(request, "Bạn đã gửi đề xuất cho yêu cầu này.")
+        return redirect("suppliers:request_detail", pk=pk)
+
+    if request.method == "POST":
+        form = SupplierProposalForm(request.POST)
+        if form.is_valid():
+            proposal = form.save(commit=False)
+            proposal.order_request = order
+            proposal.supplier = request.user
+            proposal.status = SupplierProposal.Status.PENDING
+            proposal.save()
+
+            # Gửi mail admin (nếu có cấu hình)
             try:
-                ing = Ingredient.objects.get(pk=int(ingredient_pk))
-                initial['ingredient'] = ing.pk
-            except:
+                send_mail(
+                    subject=f"Supplier apply cho yêu cầu #{order.pk}",
+                    message=f"{request.user.username} đã gửi đề xuất.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.EMAIL_HOST_USER],
+                    fail_silently=True,
+                )
+            except Exception:
                 pass
-        return initial
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ingredient_pk = self.request.GET.get('ingredient')
-        ctx['prefill_ingredient'] = None
-        if ingredient_pk:
-            try:
-                ctx['prefill_ingredient'] = Ingredient.objects.get(pk=int(ingredient_pk))
-            except:
-                pass
-        return ctx
+            messages.success(request, "Đã gửi đề xuất, vui lòng chờ admin duyệt.")
+            return redirect("suppliers:requests_list")
+    else:
+        form = SupplierProposalForm()
 
-    def form_valid(self, form):
-        req = form.save(commit=False)
-        req.created_by = self.request.user
-        req.save()
-        messages.success(self.request, 'Đã tạo yêu cầu cung cấp.')
-        return super().form_valid(form)
+    return render(
+        request,
+        "suppliers/apply_request.html",
+        {"form": form, "order": order},
+    )
 
 
-# ===========================================================
-# 2) DANH SÁCH YÊU CẦU
-# ===========================================================
-class SupplierRequestListView(LoginRequiredMixin, ListView):
-    model = SupplierRequest
-    template_name = 'suppliers/request_list.html'
-    context_object_name = 'requests'
-    paginate_by = 20
+@login_required
+def supplier_create_delivery(request, pk):
+    """
+    Supplier giao hàng sau khi proposal được duyệt
+    """
+    order = get_object_or_404(OrderRequest, pk=pk)
 
-    def get_queryset(self):
-        user = self.request.user
+    approved = SupplierProposal.objects.filter(
+        order_request=order,
+        supplier=request.user,
+        status=SupplierProposal.Status.APPROVED
+    ).exists()
 
-        # SUPPLIER — xem request mở + request mình đã nhận
-        profile = getattr(user, 'supplier_profile', None)
-        if profile:
-            qs_open = SupplierRequest.objects.filter(status=SupplierRequest.STATUS_OPEN)
-            qs_mine = SupplierRequest.objects.filter(claimed_by=profile)
-            return (qs_open | qs_mine).distinct().order_by('-created_at')
+    if not approved:
+        messages.error(request, "Bạn chưa được duyệt để giao hàng.")
+        return redirect("suppliers:request_detail", pk=pk)
 
-        # ADMIN — xem tất cả
-        if user.is_staff:
-            return SupplierRequest.objects.all().order_by('-created_at')
+    if request.method == "POST":
+        form = DeliveryForm(request.POST, request.FILES)
+        if form.is_valid():
+            delivery = form.save(commit=False)
+            delivery.order_request = order
+            delivery.supplier = request.user
+            delivery.save()
 
-        return SupplierRequest.objects.none()
+            order.status = OrderRequest.Status.IN_DELIVERY
+            order.save()
 
+            messages.success(request, "Đã gửi thông tin giao hàng.")
+            return redirect("suppliers:request_detail", pk=pk)
+    else:
+        form = DeliveryForm()
 
-# ===========================================================
-# 3) CHI TIẾT YÊU CẦU
-# ===========================================================
-class SupplierRequestDetailView(LoginRequiredMixin, DetailView):
-    model = SupplierRequest
-    template_name = 'suppliers/request_detail.html'
-    context_object_name = 'request_obj'
-
-
-# ===========================================================
-# 4) SUPPLIER NHẬN YÊU CẦU
-# ===========================================================
-class SupplierClaimView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        profile = getattr(request.user, 'supplier_profile', None)
-
-        if not profile:
-            messages.error(request, 'Bạn cần tạo hồ sơ nhà cung cấp trước.')
-            return redirect('suppliers:supplier_profile_create')
-
-        if not profile.is_approved:
-            messages.error(request, 'Hồ sơ nhà cung cấp của bạn chưa được admin duyệt.')
-            return redirect('suppliers:supplier_request_list')
-
-        req = get_object_or_404(SupplierRequest, pk=pk)
-
-        if req.status != SupplierRequest.STATUS_OPEN:
-            messages.error(request, 'Yêu cầu này đã được nhận hoặc không còn mở.')
-            return redirect('suppliers:supplier_request_list')
-
-        form = SupplierClaimForm(request.POST)
-        if not form.is_valid():
-            messages.error(request, 'Dữ liệu không hợp lệ.')
-            return redirect('suppliers:supplier_request_list')
-
-        # cập nhật request
-        req.claimed_by = profile
-        req.claimed_at = timezone.now()
-        req.supplier_message = form.cleaned_data.get('message', '')
-        req.status = SupplierRequest.STATUS_CLAIMED
-        req.save()
-
-        # gửi email thông báo admin
-        admin_emails = list(
-            User.objects.filter(is_staff=True, is_active=True)
-            .exclude(email='')
-            .values_list('email', flat=True)
-        )
-
-        if admin_emails:
-            subject = f"[Thông báo] Nhà cung cấp đã nhận yêu cầu #{req.pk}"
-
-            text_body = render_to_string(
-                'emails/supplier_claimed.txt',
-                {'request': req, 'supplier': profile, 'user': request.user}
-            )
-            html_body = render_to_string(
-                'emails/supplier_claimed.html',
-                {'request': req, 'supplier': profile, 'user': request.user}
-            )
-
-            email = EmailMultiAlternatives(subject, text_body, None, admin_emails)
-            email.attach_alternative(html_body, "text/html")
-            email.send()
-
-        messages.success(request, 'Bạn đã nhận yêu cầu. Admin sẽ kiểm tra và phản hồi.')
-        return redirect('suppliers:supplier_request_list')
+    return render(
+        request,
+        "suppliers/supplier_delivery.html",
+        {"form": form, "order": order},
+    )
 
 
-# ===========================================================
-# 5) SUPPLIER TẠO HỒ SƠ
-# ===========================================================
-class SupplierProfileCreateView(LoginRequiredMixin, CreateView):
-    model = SupplierProfile
-    form_class = SupplierProfileForm
-    template_name = 'suppliers/profile_form.html'
-    success_url = reverse_lazy('suppliers:supplier_request_list')
 
-    def dispatch(self, request, *args, **kwargs):
-        if getattr(request.user, 'supplier_profile', None):
-            messages.info(request, 'Bạn đã có hồ sơ nhà cung cấp.')
-            return redirect('suppliers:supplier_request_list')
-        return super().dispatch(request, *args, **kwargs)
+@login_required
+def supplier_claimed_list(request):
+    """
+    Supplier xem các yêu cầu mình đã apply
+    """
+    claimed_requests = OrderRequest.objects.filter(
+        proposals__supplier=request.user
+    ).distinct()
 
-    def form_valid(self, form):
-        profile = form.save(commit=False)
-        profile.user = self.request.user
-        profile.save()
-        messages.success(self.request, 'Hồ sơ đã tạo thành công. Chờ admin duyệt.')
-        return super().form_valid(form)
+    # Debugging
+    print("Claimed Requests Count:", claimed_requests.count())
+    for order in claimed_requests:
+        print(order.title)  # In tên các OrderRequest
+
+    return render(
+        request,
+        "suppliers/claimed_list.html",
+        {
+            "claimed_requests": claimed_requests,
+            "is_admin_view": False,
+        },
+    )
 
 
-# ===========================================================
-# 6) ĐĂNG KÝ NHÀ CUNG CẤP
-# ===========================================================
-def supplier_register_view(request):
-    if not request.user.is_authenticated:
-        messages.info(request, "Vui lòng đăng nhập trước khi đăng ký.")
-        return redirect('home:login')
-
-    if hasattr(request.user, 'supplier_profile'):
-        messages.info(request, "Bạn đã có hồ sơ nhà cung cấp.")
-        return redirect('suppliers:supplier_request_list')
-
-    if request.method == 'POST':
+@login_required
+def supplier_register(request):
+    """
+    Tạo hồ sơ nhà cung cấp
+    """
+    if request.method == "POST":
         form = SupplierProfileForm(request.POST)
         if form.is_valid():
             profile = form.save(commit=False)
             profile.user = request.user
             profile.save()
-            messages.success(request, "Hồ sơ tạo thành công. Chờ admin duyệt.")
-            return redirect('suppliers:supplier_request_list')
+            messages.success(request, "Đăng ký nhà cung cấp thành công.")
+            return redirect("home:index")
     else:
         form = SupplierProfileForm()
 
-    return render(request, 'suppliers/supplier_register.html', {'form': form})
+    return render(
+        request,
+        "suppliers/supplier_register.html",
+        {"form": form},
+    )
 
+# =====================================================
+# ADMIN VIEWS
+# =====================================================
 
-# ===========================================================
-# 7) ADMIN — XEM REQUEST ĐÃ ĐƯỢC NHẬN
-# ===========================================================
-@staff_member_required
-def supplier_claimed_list(request):
-    requests = SupplierRequest.objects.filter(status=SupplierRequest.STATUS_CLAIMED)
-    return render(request, 'suppliers/claimed_list.html', {'requests': requests})
-
-
-# ===========================================================
-# 8) ADMIN DUYỆT / TỪ CHỐI
-# ===========================================================
-class AdminAcceptSupplierRequestView(UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.is_staff
-
-    def post(self, request, pk):
-        req = get_object_or_404(SupplierRequest, pk=pk)
-
-        if req.status != SupplierRequest.STATUS_CLAIMED:
-            messages.error(request, "Yêu cầu này chưa được supplier nhận.")
-            return redirect("suppliers:supplier_request_detail", pk=pk)
-
-        req.status = SupplierRequest.STATUS_ACCEPTED
-        req.admin_decided_by = request.user
-        req.admin_decision_at = timezone.now()
-        req.admin_note = "Đã duyệt."
-        req.save()
-
-        # gửi email cho supplier
-        supplier_email = req.claimed_by.user.email
-        if supplier_email:
-            subject = f"Yêu cầu #{req.pk} đã được duyệt"
-
-            text_body = render_to_string('emails/admin_accept.txt', {'req': req})
-            html_body = render_to_string('emails/admin_accept.html', {'req': req})
-
-            email = EmailMultiAlternatives(subject, text_body, None, [supplier_email])
-            email.attach_alternative(html_body, "text/html")
-            email.send()
-
-        messages.success(request, "Đã chấp nhận yêu cầu.")
-        return redirect("suppliers:supplier_request_detail", pk=pk)
-
-
-class AdminRejectSupplierRequestView(UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.is_staff
-
-    def post(self, request, pk):
-        req = get_object_or_404(SupplierRequest, pk=pk)
-
-        if req.status != SupplierRequest.STATUS_CLAIMED:
-            messages.error(request, "Yêu cầu chưa được supplier nhận.")
-            return redirect("suppliers:supplier_request_detail", pk=pk)
-
-        req.status = SupplierRequest.STATUS_REJECTED
-        req.admin_decided_by = request.user
-        req.admin_decision_at = timezone.now()
-        req.admin_note = "Từ chối yêu cầu."
-        req.save()
-
-        supplier_email = req.claimed_by.user.email
-        if supplier_email:
-            subject = f"Yêu cầu #{req.pk} bị từ chối"
-
-            text_body = render_to_string('emails/admin_reject.txt', {'req': req})
-            html_body = render_to_string('emails/admin_reject.html', {'req': req})
-
-            email = EmailMultiAlternatives(subject, text_body, None, [supplier_email])
-            email.attach_alternative(html_body, "text/html")
-            email.send()
-
-        messages.warning(request, "Đã từ chối yêu cầu.")
-        return redirect("suppliers:supplier_request_detail", pk=pk)
-
-
-# ===========================================================
-# 9) SUPPLIER HOÀN THÀNH YÊU CẦU
-# ===========================================================
 @login_required
-def supplier_complete_request(request, pk):
-    profile = getattr(request.user, 'supplier_profile', None)
+@staff_member_required
+def admin_order_request_create(request):
+    ingredient_id = request.GET.get("ingredient")
+    ingredient = get_object_or_404(
+        Ingredient,
+        pk=ingredient_id
+    )
 
-    if not profile:
-        messages.error(request, "Bạn phải là nhà cung cấp mới thao tác được.")
-        return redirect("suppliers:supplier_request_list")
+    if request.method == "POST":
+        form = AdminOrderRequestForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
 
-    req = get_object_or_404(SupplierRequest, pk=pk)
+            # GÁN NGHIỆP VỤ
+            order.created_by = request.user
+            order.status = OrderRequest.Status.OPEN
 
-    if req.claimed_by != profile:
-        messages.error(request, "Bạn không có quyền hoàn thành yêu cầu này.")
-        return redirect("suppliers:supplier_request_list")
+            # LẤY TÊN + ĐƠN VỊ TỪ INGREDIENT
+            order.title = ingredient.name
+            order.unit = ingredient.unit
 
-    if req.status != SupplierRequest.STATUS_ACCEPTED:
-        messages.error(request, "Yêu cầu chưa được admin duyệt.")
-        return redirect("suppliers:supplier_request_list")
+            order.save()
+            messages.success(request, "Đã tạo yêu cầu cung cấp.")
+            return redirect('suppliers:requests_list')
+    else:
+        form = AdminOrderRequestForm(
+            initial={"ingredient": ingredient}
+        )
 
-    req.status = SupplierRequest.STATUS_COMPLETED
-    req.completed_at = timezone.now()
-    req.save()
+    return render(
+        request,
+        "suppliers/admin_request_form.html",
+        {
+            "form": form,
+            "ingredient": ingredient,
+        },
+    )
 
-    messages.success(request, "Bạn đã đánh dấu hoàn thành yêu cầu!")
-    return redirect("suppliers:supplier_request_list")
+
+@staff_member_required
+def proposals_admin_list(request):
+    qs = SupplierProposal.objects.filter(
+        status=SupplierProposal.Status.PENDING
+    ).select_related("supplier", "order_request")
+
+    return render(
+        request,
+        "suppliers/proposals_admin_list.html",
+        {"proposals": qs},
+    )
+
+
+@staff_member_required
+def proposal_detail_admin(request, proposal_id):
+    proposal = get_object_or_404(SupplierProposal, pk=proposal_id)
+    return render(
+        request,
+        "suppliers/proposal_detail_admin.html",
+        {"proposal": proposal},
+    )
+
+
+@staff_member_required
+def proposal_approve(request, proposal_id):
+    proposal = get_object_or_404(SupplierProposal, pk=proposal_id)
+
+    if request.method == "POST":
+        with transaction.atomic():
+            proposal.status = SupplierProposal.Status.APPROVED
+            proposal.save()
+
+            order = proposal.order_request
+            order.status = OrderRequest.Status.SELECTED
+            order.save()
+
+        messages.success(request, "Đã duyệt đề xuất.")
+    return redirect("suppliers:proposals_admin_list")
+
+
+@staff_member_required
+def proposal_reject(request, proposal_id):
+    proposal = get_object_or_404(SupplierProposal, pk=proposal_id)
+
+    if request.method == "POST":
+        proposal.status = SupplierProposal.Status.REJECTED
+        proposal.save()
+        messages.info(request, "Đã từ chối đề xuất.")
+
+    return redirect("suppliers:proposals_admin_list")
+
+
+@staff_member_required
+def admin_confirm_delivery(request, delivery_id):
+    delivery = get_object_or_404(Delivery, pk=delivery_id)
+    order = delivery.order_request
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "confirm":
+            with transaction.atomic():
+                order.status = OrderRequest.Status.COMPLETED
+                order.save()
+
+                item, _ = InventoryItem.objects.get_or_create(
+                    name=order.title,
+                    defaults={"unit": order.unit},
+                )
+                item.quantity += order.quantity
+                item.save()
+
+                WarehouseReceipt.objects.create(
+                    order_request=order,
+                    created_by=request.user,
+                    note=f"Tạo từ delivery #{delivery.pk}",
+                )
+
+            messages.success(request, "Đã xác nhận giao hàng.")
+        else:
+            order.status = OrderRequest.Status.DELIVERY_REJECTED
+            order.save()
+            messages.warning(request, "Đã từ chối giao hàng.")
+
+        return redirect("admin:index")
+
+    return render(
+        request,
+        "suppliers/admin_confirm_delivery.html",
+        {
+            "delivery": delivery,
+            "order": order,
+        },
+    )

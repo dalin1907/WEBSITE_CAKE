@@ -1,47 +1,57 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+{% endblock %}
 {% block content %}
 <body class="index-page">
 
 <main class="main">
 
   <!-- Banner / Hero Section -->
-  <section id="hero" class="hero section">
-    <img src="{% static 'assets/img/Banner.png' %}" alt="" class="img-fluid">
-  </section>
+  <section id="hero" class="hero section position-relative">
+  <img src="{% static 'assets/img/Banner.png' %}" alt="" class="img-fluid w-100">
+
+
+</section>
 
   <!-- Sản phẩm theo danh mục -->
   <div class="container mt-5">
-    <h2 class="text-center mb-4">SẢN PHẨM THEO DANH MỤC</h2>
+      <h1 class="hero-title d-flex align-items-center justify-content-center mb-5">BÁNH NGỌT MỖI NGÀY – NGỌT NGÀO TỪ TÂM</h1>
 
-    <div class="row">
-      {% for category_data in category_products %}
-        <div class="col-md-4 mb-5">
-          <div class="card h-100 shadow-sm">
-            <div class="card-header text-center">
-              <!-- Link sang trang products_by_category -->
-              <a href="{% url 'products:products_by_category' category_data.category.id %}">
-                {{ category_data.category.name }}
-              </a>
-            </div>
+<!--  <h2 class="section-title text-center mb-5">SẢN PHẨM THEO DANH MỤC</h2>-->
 
-            <div class="card-body text-center">
-              {% with category_data.products.first as product %}
-                {% if product %}
-                  <a href="{% url 'products:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+  <div class="row g-4">
+    {% for category_data in category_products %}
+      <div class="col-lg-4 col-md-6">
+        <div class="category-card">
 
-                  <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid" style="height:200px; object-fit:cover;">
-                  </a>
-                {% else %}
-                  <p class="text-muted">Không có sản phẩm nào.</p>
-                {% endif %}
-              {% endwith %}
-            </div>
+          <div class="category-header">
+            <a href="{% url 'products:products_by_category' category_data.category.id %}">
+              {{ category_data.category.name }}
+            </a>
           </div>
+
+          <div class="category-body">
+            {% if category_data.category.image %}
+              <img src="{{ category_data.category.image.url }}" alt="{{ category_data.category.name }}">
+            {% else %}
+              <img src="{% static 'assets/img/default-category.jpg' %}" alt="default">
+            {% endif %}
+          </div>
+
+          <div class="category-footer">
+            <a href="{% url 'products:products_by_category' category_data.category.id %}" class="btn-view">
+              Xem tất cả →
+            </a>
+          </div>
+
         </div>
-      {% endfor %}
-    </div>
+      </div>
+    {% endfor %}
   </div>
+</div>
+
 
 </main>
 </body>

@@ -1,0 +1,6 @@
+Yêu cầu #{{ req.pk }} đã hoàn thành và số lượng đã được nhập kho.
+
+Nguyên liệu: {{ req.ingredient.name }}
+Số lượng nhập: {{ req.requested_quantity }} {{ req.ingredient.unit }}
+
+Cảm ơn.

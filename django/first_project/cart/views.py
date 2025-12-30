@@ -1,140 +1,142 @@
 from decimal import Decimal
-from django.contrib import messages
-from django.db.models import Sum
-from django.http import HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404, redirect
-
-from products.models import Product
+from products.models import Product, CakeSize
 from .models import Cart, CartItem
 from .utils import get_cart_items
 
+
 def add_to_cart(request, product_id):
+    if request.method != "POST":
+        return redirect("products:product_detail", pk=product_id)
+
     product = get_object_or_404(Product, id=product_id)
-    qty_raw = request.POST.get('quantity', '')
+
+    # chống submit trùng
+    token = request.POST.get("csrfmiddlewaretoken")
+    if request.session.get("last_add_token") == token:
+        return redirect("cart:detail")
+    request.session["last_add_token"] = token
+
+    size_id = request.POST.get("size_id")
+    size = CakeSize.objects.filter(id=size_id).first() if size_id else None
+
     try:
-        quantity = int(qty_raw) if qty_raw != '' else 1
-    except (ValueError, TypeError):
+        quantity = int(request.POST.get("quantity", 1))
+    except:
         quantity = 1
 
-    if quantity <= 0:
-        messages.error(request, "Số lượng phải là số dương")
-        return redirect(request.META.get('HTTP_REFERER', '/'))
+    if quantity < 1:
+        quantity = 1
 
+    # ================= LOGIN =================
     if request.user.is_authenticated:
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        cart_item, _ = CartItem.objects.get_or_create(cart=cart, product=product, defaults={'quantity': 0})
-        cart_item.quantity += quantity
-        cart_item.save()
+
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            size=size,
+            defaults={"quantity": quantity},
+        )
+
+        if not created:
+            item.quantity += quantity
+            item.save()
+
+    # ================= SESSION =================
     else:
-        session_cart = request.session.get('cart', {})
-        pid = str(product_id)
-        if pid in session_cart:
-            session_cart[pid]['quantity'] += quantity
-        else:
-            session_cart[pid] = {
-                'name': product.name,
-                'price': str(product.price),
-                'quantity': quantity,
-                'image': product.image.url if product.image else None,
+        cart = request.session.get("cart", {})
+        key = f"{product.id}_{size.id if size else 0}"
+
+        if key not in cart:
+            cart[key] = {
+                "product_id": product.id,
+                "size_id": size.id if size else 0,
+                "name": product.name,
+                "size_name": size.name if size else "",
+                "quantity": quantity,
             }
-        request.session['cart'] = session_cart
+        else:
+            cart[key]["quantity"] += quantity
+
+        request.session["cart"] = cart
         request.session.modified = True
 
-    return redirect('cart:detail')
+    return redirect("cart:detail")
 
 
-def remove_from_cart(request, item_id):
+def update_cart(request, product_id, size_id):
+    size_id = int(size_id)
+    action = request.POST.get("action")
+
+    # ================= LOGIN =================
     if request.user.is_authenticated:
-        try:
-            cart = Cart.objects.get(user=request.user)
-            CartItem.objects.filter(cart=cart, id=item_id).delete()
-        except Cart.DoesNotExist:
-            pass
+        cart = get_object_or_404(Cart, user=request.user)
+
+        item = get_object_or_404(
+            CartItem,
+            cart=cart,
+            product_id=product_id,
+            size_id=size_id if size_id != 0 else None,
+        )
+
+        if action == "increase":
+            item.quantity += 1
+        elif action == "decrease":
+            item.quantity -= 1
+
+        if item.quantity <= 0:
+            item.delete()
+        else:
+            item.save()
+
+    # ================= SESSION =================
     else:
-        session_cart = request.session.get('cart', {})
-        session_cart.pop(str(item_id), None)
-        request.session['cart'] = session_cart
+        cart = request.session.get("cart", {})
+        key = f"{product_id}_{size_id}"
+
+        if key not in cart:
+            return redirect("cart:detail")
+
+        if action == "increase":
+            cart[key]["quantity"] += 1
+        elif action == "decrease":
+            cart[key]["quantity"] -= 1
+
+        if cart[key]["quantity"] <= 0:
+            del cart[key]
+
+        request.session["cart"] = cart
         request.session.modified = True
 
-    return redirect('cart:detail')
+    return redirect("cart:detail")
 
 
-def update_cart(request, item_id):
-    if request.method != 'POST':
-        return redirect('cart:detail')
-
-    action = request.POST.get('action')
-    if action not in ('increase', 'decrease', 'set'):
-        return HttpResponseBadRequest("Invalid action")
-
-    product = get_object_or_404(Product, pk=item_id)
+def remove_from_cart(request, product_id, size_id):
+    size_id = int(size_id)
 
     if request.user.is_authenticated:
-        try:
-            cart = Cart.objects.get(user=request.user)
-            cart_item, _ = CartItem.objects.get_or_create(cart=cart, product=product, defaults={'quantity': 0})
-        except Cart.DoesNotExist:
-            return HttpResponseBadRequest("Cart not found")
-
-        current_qty = cart_item.quantity
-        if action == 'increase':
-            new_qty = current_qty + 1
-        elif action == 'decrease':
-            new_qty = current_qty - 1
-        else:
-            try:
-                new_qty = int(request.POST.get('quantity', 0))
-            except:
-                return HttpResponseBadRequest("Invalid quantity")
-
-        if new_qty <= 0:
-            cart_item.delete()
-        else:
-            cart_item.quantity = new_qty
-            cart_item.save()
+        cart = get_object_or_404(Cart, user=request.user)
+        CartItem.objects.filter(
+            cart=cart,
+            product_id=product_id,
+            size_id=size_id if size_id != 0 else None,
+        ).delete()
     else:
-        session_cart = request.session.get('cart', {})
-        key = str(item_id)
-        current_qty = session_cart.get(key, {}).get('quantity', 0)
-        if action == 'increase':
-            new_qty = int(current_qty) + 1
-        elif action == 'decrease':
-            new_qty = int(current_qty) - 1
-        else:
-            try:
-                new_qty = int(request.POST.get('quantity', 0))
-            except:
-                return HttpResponseBadRequest("Invalid quantity")
-
-        if new_qty <= 0:
-            session_cart.pop(key, None)
-        else:
-            session_cart[key]['quantity'] = new_qty
-
-        request.session['cart'] = session_cart
+        cart = request.session.get("cart", {})
+        key = f"{product_id}_{size_id}"
+        cart.pop(key, None)
+        request.session["cart"] = cart
         request.session.modified = True
 
-    return redirect('cart:detail')
+    return redirect("cart:detail")
 
 
 def cart_detail(request):
     items, total = get_cart_items(request)
-    return render(request, 'cart/cart.html', {'items': items, 'total': total})
+    return render(request, "cart/cart.html", {"items": items, "total": total})
 
-
-def cart_count(request):
-    if request.user.is_authenticated:
-        try:
-            cart = Cart.objects.get(user=request.user)
-            total = CartItem.objects.filter(cart=cart).aggregate(total=Sum('quantity'))['total'] or 0
-        except Cart.DoesNotExist:
-            total = 0
-    else:
-        session_cart = request.session.get('cart', {})
-        total = sum(int(i.get('quantity', 0)) for i in session_cart.values())
-    return {'cart_count': total}
 
 def checkout(request):
-    # ví dụ cơ bản
     items, total = get_cart_items(request)
-    return render(request, 'cart/checkout.html', {'items': items, 'total': total})
+    return render(request, "cart/checkout.html", {"items": items, "total": total})

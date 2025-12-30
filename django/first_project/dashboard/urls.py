@@ -6,7 +6,7 @@ from .views import (
     InventoryTransactionCreateView,
 )
 from . import views
-
+app_name = "dashboard"
 urlpatterns = [
     path('order-statistics/', views.order_statistics, name='order_statistics'),
 

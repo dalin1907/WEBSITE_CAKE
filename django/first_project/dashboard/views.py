@@ -172,7 +172,7 @@ class IngredientCreateView(StaffRequiredMixin, CreateView):
     def form_valid(self, form):
         ingredient = form.save()
         messages.success(self.request, 'Đã thêm nguyên liệu mới.')
-        return redirect('ingredient_detail', pk=ingredient.pk)
+        return redirect('dashboard:ingredient_detail', pk=ingredient.pk)
 
 
 class IngredientUpdateView(StaffRequiredMixin, UpdateView):
@@ -194,7 +194,7 @@ class IngredientUpdateView(StaffRequiredMixin, UpdateView):
         return response
 
     def get_success_url(self):
-        return reverse('ingredient_detail', kwargs={'pk': self.object.pk})
+        return reverse('dashboard:ingredient_detail', kwargs={'pk': self.object.ingredient.pk})
 
 
 class InventoryTransactionCreateView(StaffRequiredMixin, View):
@@ -202,26 +202,25 @@ class InventoryTransactionCreateView(StaffRequiredMixin, View):
     Xử lý POST giao dịch nhập/xuất/điều chỉnh cho một nguyên liệu.
     URL: /inventory/<pk>/transaction/ (POST)
     """
+
     def post(self, request, pk):
         ingredient = get_object_or_404(Ingredient, pk=pk)
         form = InventoryTransactionForm(request.POST)
         if not form.is_valid():
-            # Bạn có thể muốn hiển thị lỗi cụ thể trong template; ở đây ta set message và redirect
             messages.error(request, 'Dữ liệu giao dịch không hợp lệ.')
-            return redirect('ingredient_detail', pk=pk)
+            return redirect('dashboard:ingredient_detail', pk=pk)
 
         tx = form.save(commit=False)
         tx.ingredient = ingredient
 
         with transaction.atomic():
-            # Convention: OUT -> subtract; IN/ADJ -> add
             if tx.transaction_type == 'OUT' and tx.change > 0:
                 tx.change = -tx.change
 
             new_quantity = ingredient.quantity + tx.change
             if new_quantity < 0:
                 messages.error(request, 'Không thể làm cho tồn kho âm. Kiểm tra lại số lượng.')
-                return redirect('ingredient_detail', pk=pk)
+                return redirect('dashboard:ingredient_detail', pk=pk)
 
             tx.created_at = timezone.now()
             tx.save()
@@ -229,4 +228,4 @@ class InventoryTransactionCreateView(StaffRequiredMixin, View):
             ingredient.save()
 
         messages.success(request, 'Giao dịch kho đã được lưu.')
-        return redirect('ingredient_detail', pk=pk)
+        return redirect('dashboard:ingredient_detail', pk=pk)
