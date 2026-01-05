@@ -1,0 +1,174 @@
+* {
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+/* PRODUCT CARD STYLE */
+.product-card{
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  transition:0.3s;
+  height:100%;
+}
+
+.product-card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 20px 35px rgba(0,0,0,0.15);
+}
+
+.product-card img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+  transition:0.3s;
+}
+
+.product-card:hover img{
+  transform:scale(1.05);
+}
+
+.product-body{
+  padding:15px;
+  text-align:center;
+}
+
+.product-body h6{
+  font-weight:600;
+  margin-bottom:8px;
+}
+
+.product-body .price{
+  color:#ff5f9e;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+.btn-add{
+  display:inline-block;
+  background:#FD7979;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:20px;
+  text-decoration:none;
+  font-size:14px;
+}
+
+.btn-add:hover{
+  background:#ff2f80;
+  color:#fff;
+}
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.4);
+}
+.hero-title{
+  color: #FDACAC;
+  font-size:42px;
+  font-weight:700;
+  text-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+/* ===== Trang chi tiết ===== */
+.product-detail-page {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.product-detail-img {
+    width: 100%;
+    max-width: 420px;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.product-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ff6f61;
+    margin-bottom: 15px;
+}
+
+.product-desc {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.product-price {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e53935;
+    margin-bottom: 10px;
+}
+
+.product-category {
+    font-style: italic;
+    color: #999;
+    margin-bottom: 20px;
+}
+
+.quantity-input {
+    width: 100px;
+    border-radius: 10px;
+}
+
+.btn-add-cart {
+    background: linear-gradient(135deg, #ff9a9e, #ff6f61);
+    border: none;
+    color: #fff;
+    padding: 10px 30px;
+    border-radius: 25px;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.btn-add-cart:hover {
+    opacity: 0.85;
+}
+
+/* ===== Sản phẩm tương tự ===== */
+.related-products {
+    margin-top: 60px;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #ff6f61;
+}
+
+.product-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-6px);
+}
+
+.product-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.product-card h5 {
+    margin-top: 12px;
+    font-weight: 700;
+    color: #333;
+}
+
+.product-card p {
+    color: #e53935;
+    font-weight: 700;
+}
+
