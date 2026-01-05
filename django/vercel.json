@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "first_project/wsgi.py",
+      "src": "first_project/first_project/wsgi.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "first_project/wsgi.py"
+      "dest": "first_project/first_project/wsgi.py"
     }
   ]
 }

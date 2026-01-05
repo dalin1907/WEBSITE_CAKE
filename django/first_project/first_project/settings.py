@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'first_project', 'templates')
 STATIC_DIR = os.path.join(BASE_DIR, 'first_project', 'static')
 
-ALLOWED_HOSTS = [".vercel.app"]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','.vercel.app']
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.app",
