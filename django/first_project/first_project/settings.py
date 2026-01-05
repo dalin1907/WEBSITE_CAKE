@@ -22,6 +22,7 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.app",
     "http://*.ngrok-free.app",
+    "https://*.vercel.app"
 ]
 
 # Media files
@@ -67,7 +68,7 @@ LOGIN_URL = '/login/'
 SECRET_KEY = "django-insecure-3=)evuqad__ak($adw5+_r!9!a_#-%7%@ml04dr!-2efqo@b2!"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+os.getenv('DEBUG', 'False') == 'True'
 
 
 
@@ -102,6 +103,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "first_project.urls"
