@@ -11,10 +11,10 @@
     <h3>Chi tiết đơn hàng #{{ order.id }}:</h3>
     <ul>
         {% for item in order.items.all %}
-        <li>{{ item.product_name }} x {{ item.quantity }} - {{ item.subtotal|intcomma }} đ</li>
+    <li>{{ item.product_name }} x {{ item.quantity }} - {{ item.subtotal|floatformat:"0"|intcomma }} đ</li>
         {% endfor %}
     </ul>
-    <p><strong>Tổng:</strong> {{ order.total_amount|intcomma }} đ</p>
+    <p><strong>Tổng:</strong> {{ order.total_amount|floatformat:"0"|intcomma }} đ</p>
     <p>Địa chỉ giao hàng: {{ order.recipient_address }}</p>
     <p>Chúng tôi sẽ liên hệ với bạn sớm nhất!</p>
 </body>

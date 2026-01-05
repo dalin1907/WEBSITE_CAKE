@@ -39,7 +39,7 @@ class InventoryTransaction(models.Model):
 
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=3, choices=TRANSACTION_TYPES)
-    change = models.PositiveIntegerField(default=1)
+    change = models.IntegerField(default=0)
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 

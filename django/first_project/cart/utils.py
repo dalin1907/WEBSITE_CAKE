@@ -21,7 +21,9 @@ def get_cart_items(request):
             total += subtotal
 
             items.append({
+
                 "product_id": item.product.id,
+
                 "size_id": item.size.id if item.size else 0,
                 "name": item.product.name,
                 "size_name": size_name,

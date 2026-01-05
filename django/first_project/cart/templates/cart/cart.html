@@ -46,8 +46,8 @@
     </form>
   </td>
 
-  <td>{{ item.price|intcomma }} đ</td>
-  <td class="text-danger fw-bold">{{ item.subtotal|intcomma }} đ</td>
+  <td>{{ item.subtotal|floatformat:"0"|intcomma }} đ</td>
+  <td class="text-danger fw-bold">{{ item.subtotal|floatformat:"0"|intcomma }} đ</td>
 
   <td>
     <a href="{% url 'cart:remove' item.product_id item.size_id %}" class="text-danger">
@@ -66,9 +66,9 @@
 
 {% if total > 0 %}
 <div class="cart-summary text-end">
-  <h4>Tổng: <span class="text-danger">{{ total|intcomma }} đ</span></h4>
+  <h4>Tổng: <span class="text-danger">{{ total|floatformat:"0"|intcomma }} đ</span></h4>
 
-  <form action="{% url 'cart:checkout' %}" method="post">
+  <form action="{% url 'payments:checkout' %}" method="post">
     {% csrf_token %}
     <button class="btn btn-danger btn-lg mt-2">
       <i class="bi bi-bag-check"></i> Thanh toán

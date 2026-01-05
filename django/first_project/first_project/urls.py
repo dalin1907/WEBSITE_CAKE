@@ -5,12 +5,13 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("home.urls", namespace="home")),           # index, resume, contact, portfolio, auth
-    path("products/", include("products.urls", namespace="products")),  # product listing/detail/category
-    path("cart/", include("cart.urls", namespace="cart")),     # cart view, add, remove, update, checkout (review)
+    path("", include("home.urls", namespace="home")),
+    path("products/", include("products.urls", namespace="products")),
+    path("cart/", include("cart.urls", namespace="cart")),
     path("payments/", include("payments.urls", namespace="payments")),
     path("suppliers/", include("suppliers.urls", namespace="suppliers")),
     path("dashboard/", include("dashboard.urls", namespace="dashboard")),
+    path('social-auth/', include('social_django.urls', namespace='social')),
 ]
 
 if settings.DEBUG:

@@ -27,7 +27,7 @@
         <div class="category-card">
 
           <div class="category-header">
-            <a href="{% url 'products:products_by_category' category_data.category.id %}">
+            <a href="{% url 'products:products_by_category' category_data.category.slug %}">
               {{ category_data.category.name }}
             </a>
           </div>

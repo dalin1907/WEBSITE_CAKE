@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <h3>Chi tiết đơn hàng</h3>
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <strong>Mã đơn hàng:</strong> #{{ order.id }}
+        </li>
+        <li class="list-group-item">
+            <strong>Ngày đặt:</strong> {{ order.created_at|date:"d/m/Y H:i" }}
+        </li>
+        <li class="list-group-item">
+            <strong>Tổng tiền:</strong> {{ order.total_amount }} VND
+        </li>
+        <li class="list-group-item">
+            <strong>Trạng thái:</strong> {{ order.get_status_display }}
+        </li>
+    </ul>
+
+    <h4 class="mt-4">Sản phẩm trong đơn hàng:</h4>
+    <ul>
+        {% for item in order.items.all %}
+        <li>{{ item.product_name }} x {{ item.quantity }} - {{ item.price|floatformat:2 }} VND</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

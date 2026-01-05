@@ -8,31 +8,49 @@ def products(request):
     return render(request, 'products/products.html', {'products': qs})
 
 
-def product_detail(request, pk):
-    # Lấy sản phẩm cụ thể
-    product = get_object_or_404(Product, pk=pk)
+def product_detail(request, slug):
+    # Lấy sản phẩm theo slug (nếu không có, product = None)
+    product = Product.objects.filter(slug=slug).first()
 
-    # Lấy danh sách sản phẩm tương tự (ví dụ: trong cùng category đầu tiên)
-    similar_products = Product.objects.exclude(pk=product.pk).filter(
+    # Nếu không có sản phẩm, render một template với thông báo lỗi
+    if not product:
+        return render(request, 'products/product_detail.html', {
+            'error': 'Sản phẩm này không tồn tại.',
+            'product': None,  # Không có sản phẩm
+            'similar_products': []  # Không có sản phẩm tương tự
+        })
+
+    # Lấy danh sách sản phẩm tương tự (cùng categories)
+    similar_products = Product.objects.filter(
         categories__in=product.categories.all()
-    ).distinct()
+    ).exclude(pk=product.pk).distinct()
 
-    # Áp dụng phân trang
-    paginator = Paginator(similar_products, 4)
-    page_number = request.GET.get('page')
+    # Phân trang cho sản phẩm tương tự
+    paginator = Paginator(similar_products, 4)  # Mỗi trang 4 sản phẩm
+    page_number = request.GET.get('page')  # Trang hiện tại
     page_obj = paginator.get_page(page_number)
 
-    # Truyền dữ liệu vào context
-    context = {
+    # Render chi tiết sản phẩm
+    return render(request, 'products/product_detail.html', {
         'product': product,
-        'similar_products': page_obj,  # Trang hiện tại của paginator
-    }
-    return render(request, 'products/product_detail.html', context)
+        'similar_products': page_obj
+    })
 
 
-def products_by_category(request, category_id):
-    category = get_object_or_404(Category, id=category_id)
+
+
+def products_by_category(request, slug):
+    category = Category.objects.filter(slug=slug).first()
+
+    if not category:
+        return render(request, 'products/products_by_category.html', {
+            'category': None,
+            'products': [],
+            'error': 'Danh mục không tồn tại.'
+        })
+
     products = Product.objects.filter(categories=category)
+
     return render(request, 'products/products_by_category.html', {
         'category': category,
         'products': products

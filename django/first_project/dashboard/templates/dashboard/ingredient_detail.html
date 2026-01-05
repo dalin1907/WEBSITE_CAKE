@@ -1,49 +1,56 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load humanize %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+{% endblock %}
 {% block content %}
+
 <div class="container py-4">
     {% if creating %}
-        <h2 class="mb-4">Thêm nguyên liệu mới</h2>
+        <h2 class="hero-title mb-4">Thêm nguyên liệu mới</h2>
     {% else %}
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="mb-0">Nguyên liệu: {{ ingredient.name }}</h2>
+            <h2 class="hero-title mb-0">Nguyên liệu: {{ ingredient.name }}</h2>
             <div>
-                <!-- Nút tạo yêu cầu: chỉ hiện cho staff (chỉ staff được tạo request theo view mặc định) -->
                 {% if user.is_staff %}
-                <a href="{% url 'suppliers:admin_request_create' %}?ingredient={{ ingredient.pk }}" class="btn btn-outline-primary me-2">
+                <a href="{% url 'suppliers:admin_request_create' %}?ingredient={{ ingredient.pk }}"
+                   class="btn btn-outline-primary me-2">
                     Tạo yêu cầu cung cấp
                 </a>
                 {% endif %}
-                <a class="btn btn-outline-secondary" href="{% url 'dashboard:inventory_list' %}">Quay lại</a>
+                <a class="btn btn-secondary" href="{% url 'dashboard:inventory_list' %}">Quay lại</a>
             </div>
         </div>
     {% endif %}
 
     <div class="row">
         <div class="col-md-6">
-            <h5>Thông tin</h5>
+            <h5 class="section-title">Thông tin</h5>
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button class="btn btn-primary">Lưu</button>
-                <a href="{% url 'dashboard:inventory_list' %}" class="btn btn-outline-secondary">Quay lại</a>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary">Lưu</button>
+                    <a href="{% url 'dashboard:inventory_list' %}" class="btn btn-secondary">Quay lại</a>
+                </div>
             </form>
         </div>
 
         {% if not creating %}
         <div class="col-md-6">
-            <h5>Thao tác kho</h5>
+            <h5 class="section-title">Thao tác kho</h5>
             <form method="post" action="{% url 'dashboard:add_transaction' ingredient.pk %}">
                 {% csrf_token %}
                 {{ tx_form.as_p }}
                 <div class="d-flex gap-2">
                     <button class="btn btn-success">Lưu giao dịch</button>
-                    <a class="btn btn-outline-secondary" href="{% url 'dashboard:inventory_list' %}">Quay lại</a>
+                    <a class="btn btn-secondary" href="{% url 'dashboard:inventory_list' %}">Quay lại</a>
                 </div>
             </form>
 
             <hr>
-            <h6>Lịch sử giao dịch gần đây</h6>
+            <h6 class="section-title">Lịch sử giao dịch gần đây</h6>
             <ul class="list-group">
                 {% for tx in transactions %}
                 <li class="list-group-item">

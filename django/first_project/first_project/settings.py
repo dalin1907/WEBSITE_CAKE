@@ -42,6 +42,23 @@ PAYPAL_SECRET = "EHm3a_wLzyoMTPV-porId8XVy0Y4on_C4mC-KS8Zy3nrYP85E75d4gv4miHBq8Z
 PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com'
 PAYPAL_CURRENCY = "USD"
 
+# MOMO_PARTNER_CODE = "MOMOBKUN20180529"
+# MOMO_ACCESS_KEY = "klmKhWeY8aMAjWo4"
+# MOMO_SECRET_KEY = "at67qH6mk8w5Y1nAyMoPXG7NYgNBb9If"
+# MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
+
+
+VNPAY_TMN_CODE = "Q8YXZZ01"     # cấp bởi VNPay sandbox
+VNPAY_HASH_SECRET = "SLDO07RP9A238MHUQOQFBH8UMTPWBICO"
+VNPAY_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+
+SOCIAL_AUTH_FACEBOOK_KEY = '807968285620159'
+SOCIAL_AUTH_FACEBOOK_SECRET = 'cc4d3e8c128db94228a22ba46591cb30'
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+
+LOGIN_REDIRECT_URL = 'home:index'  # Trang chuyển hướng sau đăng nhập thành công
+LOGOUT_REDIRECT_URL = 'home:login'  # Trang chuyển hướng sau khi đăng xuất
+
 LOGIN_URL = '/login/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -56,7 +73,10 @@ DEBUG = True
 
 
 # Application definition
-
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.facebook.FacebookOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -71,6 +91,7 @@ INSTALLED_APPS = [
     "payments",
     "dashboard",
     "suppliers",
+    "social_django",
 ]
 
 MIDDLEWARE = [

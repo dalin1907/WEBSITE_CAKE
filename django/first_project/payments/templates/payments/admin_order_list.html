@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <h3>Quản lý đơn hàng</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã đơn hàng</th>
+                <th>Người đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.full_name }}</td>
+                <td>{{ order.total_amount }} VND</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>
+                    <a href="{% url 'payments:process_order_detail' order.id %}" class="btn btn-primary btn-sm">
+                        Xử lý
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

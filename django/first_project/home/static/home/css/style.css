@@ -15,6 +15,59 @@
   letter-spacing:1px;
 }
 
+  .auth-box hr {
+    margin: 20px 0;
+  }
+
+  .social-login {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+
+  .social-login a {
+    display: inline-block;
+    background: #3b5998;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .social-login a:hover {
+    background: #2d4373;
+  }
+
+  .auth-box p {
+    font-size: 0.95rem;
+  }
+  .btn-facebook {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #1877f2; /* viền xanh */
+  background-color: #fff;      /* nền trắng */
+  color: #000;                 /* chữ đen */
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-facebook i {
+  font-size: 18px;
+  color: #1877f2; /* icon xanh nước biển */
+}
+
+.btn-facebook:hover {
+  background-color: #f0f5ff;  /* hover nhẹ xanh */
+}
 .category-card{
   border-radius:18px;
   overflow:hidden;

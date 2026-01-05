@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <h3 class="mb-4">Chi tiết đơn hàng: #{{ order.id }}</h3>
+
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Người đặt:</strong> {{ order.full_name }}</li>
+        <li class="list-group-item"><strong>Số điện thoại:</strong> {{ order.phone }}</li>
+        <li class="list-group-item"><strong>Email:</strong> {{ order.email }}</li>
+        <li class="list-group-item"><strong>Địa chỉ:</strong> {{ order.recipient_address }}</li>
+        <li class="list-group-item"><strong>Tổng tiền:</strong> {{ order.total_amount }} VND</li>
+        <li class="list-group-item"><strong>Trạng thái hiện tại:</strong> {{ order.get_status_display }}</li>
+    </ul>
+
+    <h4 class="mt-4">Thay đổi trạng thái:</h4>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="status" class="form-label"><strong>Trạng thái mới:</strong></label>
+            <select name="status" id="status" class="form-select">
+                <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Đang xử lý</option>
+                <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Đang chuẩn bị</option>
+                <option value="shipping" {% if order.status == 'shipping' %}selected{% endif %}>Đang vận chuyển</option>
+                <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Đã giao hàng</option>
+                <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Cập nhật trạng thái</button>
+        <a href="{% url 'payments:process_orders' %}" class="btn btn-secondary">Quay lại</a>
+    </form>
+</div>
+{% endblock %}

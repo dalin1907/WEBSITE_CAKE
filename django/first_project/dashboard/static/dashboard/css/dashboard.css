@@ -1,0 +1,24 @@
+/* App Dashboard Styles */
+.hero-title {
+  color: #4CAF50; /* Dashboard có thể dùng màu khác ví dụ xanh lá */
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.section-title {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  font-weight: bold;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}

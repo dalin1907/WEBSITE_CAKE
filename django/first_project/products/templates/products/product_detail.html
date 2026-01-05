@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% load static %}
 
 {% block extra_css %}
@@ -8,120 +9,122 @@
 {% block content %}
 <div class="container py-5 product-detail-page">
 
-  <div class="row mb-5 align-items-center">
-    <!-- Hình sản phẩm -->
-    <div class="col-md-6 text-center">
-      <img src="{{ product.image.url }}" alt="{{ product.name }}"
-           class="product-detail-img">
+    {% if error %}
+    <!-- Hiển thị thông báo lỗi -->
+    <div class="alert alert-danger text-center">
+        <p>{{ error }}</p>
     </div>
-
-    <!-- Thông tin -->
-    <div class="col-md-6">
-      <h2 class="product-title">{{ product.name }}</h2>
-      <p class="product-desc">{{ product.description }}</p>
-      <p class="product-price">{{ product.price }} đ</p>
-
-
-      <form method="post" action="{% url 'cart:add' product.id %}">
-  {% csrf_token %}
-
-  <!-- Chọn size -->
-  {% if product.sizes.all %}
-  <div class="mb-3">
-    <label class="fw-bold">Chọn size bánh:</label>
-    {% for size in product.sizes.all %}
-      <div class="form-check">
-        <input class="form-check-input"
-               type="radio"
-               name="size_id"
-               value="{{ size.id }}"
-               required>
-        <label class="form-check-label">
-          {{ size.name }}
-          {% if size.extra_price > 0 %}
-            (+{{ size.extra_price }}đ)
-          {% endif %}
-        </label>
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  <!-- Số lượng -->
-  <div class="mb-3">
-    <label class="fw-bold">Số lượng:</label>
-    <input type="number" name="quantity" value="1" min="1" class="form-control w-25">
-  </div>
-
-  <button type="submit" class="btn btn-danger">
-    🛒 Thêm vào giỏ hàng
-  </button>
-</form>
-
-    </div>
-  </div>
-
-  <!-- Sản phẩm tương tự -->
- <section class="related-products">
-    <h3 class="section-title">SẢN PHẨM TƯƠNG TỰ</h3>
-    <div class="row">
-        {% for p in similar_products %}
-        <div class="col-md-3 mb-4">
-            <div class="product-card">
-                <a href="{% url 'products:product_detail' p.pk %}">
-                    {% if p.image %}
-                    <img src="{{ p.image.url }}" alt="{{ p.name }}">
-                    {% else %}
-                    <img src="{% static 'assets/img/default.jpg' %}" alt="No Image">
-                    {% endif %}
-                    <h5>{{ p.name }}</h5>
-                    <p>{{ p.price }} đ</p>
-                </a>
-            </div>
+    {% else %}
+    <!-- Hiển thị chi tiết sản phẩm -->
+    <div class="row mb-5 align-items-center">
+        <!-- Hình sản phẩm -->
+        <div class="col-md-6 text-center">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-detail-img">
         </div>
-        {% endfor %}
+
+        <!-- Thông tin sản phẩm -->
+        <div class="col-md-6">
+            <h2 class="product-title">{{ product.name }}</h2>
+            <p class="product-desc">{{ product.description }}</p>
+            <p class="product-price">{{ product.price|floatformat:"0"|intcomma }} đ</p>
+
+            <form method="post" action="{% url 'cart:add' product.id %}">
+                {% csrf_token %}
+
+                <!-- Chọn size -->
+                {% if product.sizes.all %}
+                <div class="mb-3">
+                    <label class="fw-bold">Chọn size bánh:</label>
+                    {% for size in product.sizes.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="size_id" value="{{ size.id }}" required>
+                        <label class="form-check-label">
+                            {{ size.name }}
+                            {% if size.extra_price > 0 %}
+                            (+{{ size.extra_price }}đ)
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Số lượng -->
+                <div class="mb-3">
+                    <label class="fw-bold">Số lượng:</label>
+                    <input type="number" name="quantity" value="1" min="1" class="form-control w-25">
+                </div>
+
+                <button type="submit" class="btn btn-danger">
+                    🛒 Thêm vào giỏ hàng
+                </button>
+            </form>
+        </div>
     </div>
 
-    <!-- Phân trang -->
-    <div class="pagination mt-4 d-flex justify-content-center">
-        <ul class="pagination">
-            <!-- Nút Previous -->
-            {% if similar_products.has_previous %}
+    <!-- Sản phẩm tương tự -->
+    <section class="related-products">
+        <h3 class="section-title">SẢN PHẨM TƯƠNG TỰ</h3>
+        <div class="row">
+            {% for p in similar_products %}
+            <div class="col-md-3 mb-4">
+                <div class="product-card">
+                    <a href="{% url 'products:product_detail' p.slug %}">
+                        {% if p.image %}
+                        <img src="{{ p.image.url }}" alt="{{ p.name }}">
+                        {% else %}
+                        <img src="{% static 'assets/img/default.jpg' %}" alt="No Image">
+                        {% endif %}
+                        <h5>{{ p.name }}</h5>
+                        <p>{{ p.price|floatformat:"0"|intcomma }} đ</p>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-muted">Không có sản phẩm tương tự nào.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Phân trang -->
+        <div class="pagination mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <!-- Nút Previous -->
+                {% if similar_products.has_previous %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ similar_products.previous_page_number }}">Trước</a>
                 </li>
-            {% else %}
+                {% else %}
                 <li class="page-item disabled">
                     <span class="page-link">Trước</span>
                 </li>
-            {% endif %}
-
-            <!-- Hiển thị số trang -->
-            {% for num in similar_products.paginator.page_range %}
-                {% if num == similar_products.number %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                {% else %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
                 {% endif %}
-            {% endfor %}
 
-            <!-- Nút Next -->
-            {% if similar_products.has_next %}
+                <!-- Hiển thị số trang -->
+                {% for num in similar_products.paginator.page_range %}
+                {% if num == similar_products.number %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+
+                <!-- Nút Next -->
+                {% if similar_products.has_next %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ similar_products.next_page_number }}">Tiếp</a>
                 </li>
-            {% else %}
+                {% else %}
                 <li class="page-item disabled">
                     <span class="page-link">Tiếp</span>
                 </li>
-            {% endif %}
-        </ul>
-    </div>
-</section>
-
+                {% endif %}
+            </ul>
+        </div>
+    </section>
+    {% endif %}
 </div>
 {% endblock %}

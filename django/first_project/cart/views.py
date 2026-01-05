@@ -3,6 +3,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from products.models import Product, CakeSize
 from .models import Cart, CartItem
 from .utils import get_cart_items
+from django.contrib import messages
+
+
 
 
 def add_to_cart(request, product_id):
@@ -137,6 +140,4 @@ def cart_detail(request):
     return render(request, "cart/cart.html", {"items": items, "total": total})
 
 
-def checkout(request):
-    items, total = get_cart_items(request)
-    return render(request, "cart/checkout.html", {"items": items, "total": total})
+

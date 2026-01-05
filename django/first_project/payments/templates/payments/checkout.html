@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'cart/css/cart.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 product-cart-page">
+
+  <h2 class="section-title text-center mb-4">THANH TOÁN</h2>
+
+  <div class="row g-4">
+
+    <!-- FORM KHÁCH HÀNG -->
+    <div class="col-lg-7">
+      <div class="cart-box p-4 h-100">
+        <h5 class="mb-3 fw-bold">Thông tin khách hàng</h5>
+
+        <form method="post" action="{% url 'payments:checkout' %}">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" name="full_name" class="form-control" required
+                   value="{{ full_name|default_if_none:'' }}">
+          </div>
+
+          <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required
+               value="{{ email|default_if_none:'' }}">
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label">Số điện thoại</label>
+              <input
+                  type="tel"
+                  name="phone"
+                  class="form-control"
+                  required
+                  pattern="[0-9]{10,11}"
+                  title="Số điện thoại phải là 10-11 chữ số, ví dụ: 0912345678 hoặc 01234567890"
+                  value="{{ phone|default_if_none:'' }}"
+              >
+            </div>
+
+          <div class="mb-3">
+              <label class="form-label">Thành phố</label>
+              <input type="text" class="form-control" value="TP. Hồ Chí Minh" readonly>
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label">Quận / Huyện</label>
+              <select name="district" class="form-select" required>
+                <option value="">-- Chọn quận/huyện --</option>
+                <option value="Quận 1">Quận 1</option>
+                <option value="Quận 3">Quận 3</option>
+                <option value="Quận 4">Quận 4</option>
+                <option value="Quận 5">Quận 5</option>
+                <option value="Quận 6">Quận 6</option>
+                <option value="Quận 7">Quận 7</option>
+                <option value="Quận 8">Quận 8</option>
+                <option value="Quận 10">Quận 10</option>
+                <option value="Quận 11">Quận 11</option>
+                <option value="Quận 12">Quận 12</option>
+                <option value="Bình Thạnh">Bình Thạnh</option>
+                <option value="Gò Vấp">Gò Vấp</option>
+                <option value="Phú Nhuận">Phú Nhuận</option>
+                <option value="Tân Bình">Tân Bình</option>
+                <option value="Tân Phú">Tân Phú</option>
+                <option value="Thủ Đức">Thủ Đức</option>
+                <option value="Bình Tân">Bình Tân</option>
+                <option value="Hóc Môn">Hóc Môn</option>
+                <option value="Bình Chánh">Bình Chánh</option>
+                <option value="Nhà Bè">Nhà Bè</option>
+                <option value="Củ Chi">Củ Chi</option>
+                <option value="Cần Giờ">Cần Giờ</option>
+              </select>
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label">Địa chỉ chi tiết</label>
+              <input type="text" name="recipient_address" class="form-control"
+                     placeholder="Số nhà, tên đường, phường..." required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Ghi chú</label>
+            <textarea name="note" class="form-control" rows="2">{{ note|default_if_none:'' }}</textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Phương thức thanh toán</label>
+            <select name="payment_method" class="form-select" required>
+              <option value="cod" {% if payment_method == 'cod' %}selected{% endif %}>
+                Thanh toán khi nhận hàng (COD)
+              </option>
+              <option value="paypal" {% if payment_method == 'paypal' %}selected{% endif %}>
+                PayPal
+              </option>
+<!--                <option value="vnpay">VNPay</option>-->
+                <option value="momo">Ví MoMo</option>
+            </select>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'cart:detail' %}" class="btn btn-outline-secondary">
+              ← Quay lại giỏ hàng
+            </a>
+            <button type="submit" class="btn btn-danger px-4">
+              🛍 Xác nhận đặt hàng
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TÓM TẮT ĐƠN HÀNG -->
+    <div class="col-lg-5">
+      <div class="cart-box p-4 h-100">
+        <h5 class="mb-3 fw-bold">Tóm tắt đơn hàng</h5>
+
+        <ul class="list-group list-group-flush mb-3">
+          {% for item in items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div>
+              <strong>{{ item.name }}</strong><br>
+              <small class="text-muted">SL: {{ item.quantity }}</small>
+            </div>
+            <span class="fw-semibold text-danger">{{ item.subtotal|floatformat:"0"|intcomma }} đ</span>
+          </li>
+
+          {% empty %}
+          <li class="list-group-item text-center text-muted px-0">
+            Giỏ hàng trống
+          </li>
+          {% endfor %}
+        </ul>
+
+        <div class="cart-summary text-end">
+          <h4>Tổng cộng:
+            <span class="text-danger fw-bold">{{ total|floatformat:"0"|intcomma }} đ</span>
+          </h4>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

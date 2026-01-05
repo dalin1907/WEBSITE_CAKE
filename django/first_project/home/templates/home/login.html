@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'home/css/home.css' %}">
+<link rel="stylesheet" href="{% static 'home/css/style.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -32,6 +31,14 @@
             Đăng nhập
           </button>
         </form>
+
+          <hr>
+
+                <div class="social-login text-center mt-3">
+                  <a href="{% url 'social:begin' 'facebook' %}" class="btn-facebook">
+                    <i class="bi bi-facebook"></i> Tiếp tục với Facebook
+                  </a>
+                </div>
 
         <p class="text-center mt-3 mb-0">
           Chưa có tài khoản?
